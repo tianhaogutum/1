@@ -97,7 +97,18 @@ static void found_option_V(void){
 }
 
 static void found_option_B(void){
-
+    if(b_set){
+        fprintf(stderr, "Option 'B' is already set, please don't set it twice.\nProgram terminated.\n");
+        exit(EXIT_FAILURE);
+    }
+    if(optarg){
+        int tmp = atoi(optarg);
+        if(tmp <= 0){//should be updated to guarantee a sufficient workload
+            fprintf(stderr, "Benchmark number cannot be negative or zero.\nProgram terminated.\n");//should be updated accordingly
+            exit(EXIT_FAILURE);
+        }
+        benchmark_number = tmp;
+    }
 }
 
 static void found_option_o(void){
