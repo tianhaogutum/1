@@ -11,7 +11,6 @@ gammacorrect: gammacorrect.c
 debug: gammacorrect.c
 	$(CC) -g $(CFLAGS) -o $@ $^
 
-
 .PHNOY: clean
 clean:
-	rm -f gammacorrect
+	rm -f gammacorrect debug
