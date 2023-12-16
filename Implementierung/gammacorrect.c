@@ -134,6 +134,31 @@ static void found_option_h(void)
 
 static void found_option_coeffs(void)
 {
+    if (coeffs_set)
+    {
+        exit_failure_with_errmessage("Option 'coeffs' is already set, please don't set it twice.\nProgram terminated.\n");
+    }
+
+    char* ptr = strtok(optarg, ",");
+
+    if(ptr == NULL){
+        exit_failure_with_errmessage("No Value for coeffs was given.\nProgram terminated.\n");
+    }
+    a = strtof(ptr, NULL);
+
+    ptr = strtok(NULL, ",");
+    if(ptr == NULL){
+        exit_failure_with_errmessage("No Value for coeffs was given.\nProgram terminated.\n");
+    }
+    b = strtof(ptr, NULL);
+
+    ptr = strtok(NULL, ",");
+    if(ptr == NULL){
+        exit_failure_with_errmessage("No Value for coeffs was given.\nProgram terminated.\n");
+    }
+    c = strtof(ptr, NULL);
+
+    gamma_set = true;
 }
 
 static void found_option_gamma(void)
