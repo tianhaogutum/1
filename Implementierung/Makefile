@@ -1,6 +1,6 @@
 CC=gcc
 
-CFLAGS=-O3 -Wall -Wextra -fanalyzer
+CFLAGS=-O3 -Wall -Wextra -fsanitize=address -fsanitize=undefined
 
 .PHNOY: all
 all: gammacorrect
