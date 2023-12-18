@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include "V0.h"
 
 #ifndef GAMMACORRECT_H
 #define GAMMACORRECT_H

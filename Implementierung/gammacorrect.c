@@ -14,7 +14,7 @@ static float a = 0;                   // temporary setting, should be initialize
 static float b = 0;                   // temporary setting, should be initialized as the default b
 static float c = 0;                   // temporary setting, should be initialized as the default c
 static _Bool gamma_set = false;       // is gamma set?
-static float gamma = 1;               // temporary setting, should be initialized as the default gamma
+static float _gamma = 1;               // temporary setting, should be initialized as the default gamma
 static const char *program_path;      // stores the path of the program
 
 static const struct option long_options[] = { // long options' table
@@ -23,7 +23,7 @@ static const struct option long_options[] = { // long options' table
     {"help", no_argument, 0, 'h'},
     {0, 0, 0, 0}};
 // function signatures
-static void parse_options(int argc, char **argv); // getopt_long()
+static void parse_options(int argc, char** argv); // getopt_long()
 static void found_option_V(void);                 // behaviour if found option '-V'
 static void found_option_B(void);                 // behaviour if found option '-B'
 static void found_option_o(void);                 // behaviour if found option '-o'
@@ -38,11 +38,11 @@ int main(int argc, char **argv)
 {
     program_path = argv[0]; // save program path as global
     parse_options(argc, argv);
-    printf("version is %d\nbenchmark_number is %d\ngamma is %f\n", version, benchmark_number, gamma);//for testing
+    printf("version is %d\nbenchmark_number is %d\ngamma is %f\ninput file name is %s\n", version, benchmark_number, _gamma, input_file_name);//for testing
     return 0;
 }
 
-static void parse_options(int argc, char **argv)
+static void parse_options(int argc, char** argv)
 {
     int opt = 0;
     while ((opt = getopt_long(argc, argv, "V:B::o:h", long_options, NULL)) != -1)
@@ -107,7 +107,7 @@ static void found_option_B(void)
     }
     if (optarg)
     {
-        benchmark_number = strtol(optarg, NULL, 10);
+        benchmark_number = strtol(optarg, NULL, 10);//strtol and strtof could end in error? error must be captured
         if (benchmark_number < 100)
         {                                                                                                              // should be updated to guarantee a sufficient workload
             exit_failure_with_errmessage("The number of repetitions cannot be less than 100.\nProgram terminated.\n"); // should be updated accordingly
@@ -158,7 +158,7 @@ static void found_option_coeffs(void)
     }
     c = strtof(ptr, NULL);
 
-    gamma_set = true;
+    coeffs_set = true;
 }
 
 static void found_option_gamma(void)
@@ -167,7 +167,7 @@ static void found_option_gamma(void)
     {
         exit_failure_with_errmessage("Option 'gamma' is already set, please don't set it twice.\nProgram terminated.\n");
     }
-    gamma = strtof(optarg, NULL);
+    _gamma = strtof(optarg, NULL);
     gamma_set = true;
 }
 
