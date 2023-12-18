@@ -2,12 +2,13 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <stdint.h>
 //for all functions here, if fd is zero, then it's undefined behaviour
 //status machine for magic number part, three functions for three possible status
 void magic_number_s0(FILE * fd);
 void magic_number_s1(FILE * fd);
 void magic_number_s2(FILE * fd);
-//status machine for width and height part, two functions for two possible status
+//status machine for width, height and maxval part, two functions for two possible status
 struct digits_chain * getsize_s0(FILE * fd);//return the start of a digits chain
 void getsize_s1(FILE * fd, struct digits_chain * start);//append the following digits to digits chain
 size_t get_number_from_digits(struct digits_chain * start);//get number and free all allocated space for digits chain
@@ -38,8 +39,30 @@ int main(int argc, char **argv)
     struct digits_chain * start_of_height = getsize_s0(fd);
     getsize_s1(fd, start_of_height);
     size_t height = get_number_from_digits(start_of_height);
-    printf("height is %lu\n", height);
+    printf("height is %lu\n", height);//for testing
+    struct digits_chain * start_of_maxval = getsize_s0(fd);
+    getsize_s1(fd, start_of_maxval);//for testing
+    size_t maxval = get_number_from_digits(start_of_maxval);
+    printf("maxval is %lu\n", maxval);
+    uint8_t * value_of_pixels = malloc(width * height * 3 + 1);
+    if(!value_of_pixels){
+        exit_failure_with_errmessage_and_release(fd, NULL, "Can not allocate space for input pixels.\n");
+    }
+    size_t success_read = 2;
+    for(size_t i = 0; i < height; ++i){
+        success_read = fread(value_of_pixels + i * width * 3, width * 3, 1, fd);
+        if(!success_read){
+            fprintf(stderr, "%s", "failed\n");
+            fclose(fd);
+            free(value_of_pixels);
+            exit(EXIT_FAILURE);
+        }
+    }
+    for(size_t i = 0; i < 1500; ++i){
+        printf("%u\n", value_of_pixels[i]);
+    }//for testing, use > to put the output into a file, and then use cmp to compare with other results
     fclose(fd);
+    free(value_of_pixels);
     return 0;
 }
 
@@ -126,7 +149,7 @@ struct digits_chain * getsize_s0(FILE * fd){
             return start;
         }
         else{
-            exit_failure_with_errmessage_and_release(fd, NULL, "The width or height info in your file is not starting with a digit. Please check your input file.\n");
+            exit_failure_with_errmessage_and_release(fd, NULL, "The width or height or maxval info in your file is not starting with a digit. Please check your input file.\n");
         }
     }
 }
@@ -151,7 +174,7 @@ void getsize_s1(FILE * fd, struct digits_chain * start){
             current->next = NULL;
         }
         else{
-            exit_failure_with_errmessage_and_release(fd, start, "The width or height info in your file contains non digits. Please check your input file.\n");
+            exit_failure_with_errmessage_and_release(fd, start, "The width or height or maxval info in your file contains non digits. Please check your input file.\n");
         }
     }
 }

@@ -14,7 +14,7 @@ static float a = 0;                   // temporary setting, should be initialize
 static float b = 0;                   // temporary setting, should be initialized as the default b
 static float c = 0;                   // temporary setting, should be initialized as the default c
 static _Bool gamma_set = false;       // is gamma set?
-static float _gamma = 1;               // temporary setting, should be initialized as the default gamma
+static float _gamma = 1;              // temporary setting, should be initialized as the default gamma
 static const char *program_path;      // stores the path of the program
 
 static const struct option long_options[] = { // long options' table
@@ -39,6 +39,11 @@ int main(int argc, char **argv)
     program_path = argv[0]; // save program path as global
     parse_options(argc, argv);
     printf("version is %d\nbenchmark_number is %d\ngamma is %f\ninput file name is %s\n", version, benchmark_number, _gamma, input_file_name);//for testing
+    /*We still need to check gamma, a, b, c values set by the users here.*/
+    size_t width = 0;
+    size_t height = 0;
+    uint8_t * img = readppm(input_file_name, &width, &height);//we don't need to check the return value here, because if error occured, the program will terminate in readppm. And until now there is no ram/fd to release.
+    free(img);//currently used to avoid leak sanitizer
     return 0;
 }
 

@@ -1,9 +1,7 @@
 #include <getopt.h>
-#include <stdbool.h>
 #include <string.h>
-#include <stdio.h>
-#include <ctype.h>
 #include "V0.h"
+#include "readppm.h"
 
 #ifndef GAMMACORRECT_H
 #define GAMMACORRECT_H
