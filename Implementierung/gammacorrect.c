@@ -45,27 +45,34 @@ int main(int argc, char **argv)
     size_t height = 0;
     uint8_t *img = readppm(input_file_name, &width, &height); // we don't need to check the return value here, because if error occured, the program will terminate in readppm. And until now there is no ram/fd to release.
     uint8_t *result = malloc(width * height);
+
     if (!result)
     {
         free(img);
         fprintf(stderr, "%s", "memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
+
     gamma_correct(img, width, height, a, b, c, _gamma, result);
+
     free(img); // currently used to avoid leak sanitizer
+
     FILE *output = fopen(output_file_name, "w");
+
     if (!output)
     {
         free(result);
         fprintf(stderr, "cannot open output file.\n");
         exit(EXIT_FAILURE);
     }
+
     char *meta_data = "P5\n512\n512\n255\n";
     fwrite(meta_data, 15, 1, output);
     fwrite(result, width * height, 1, output);
     fclose(output);
     free(result);
     return 0;
+
 }
 
 static void parse_options(int argc, char **argv)
@@ -166,11 +173,6 @@ static void found_option_coeffs(void)
     }
 
     char* ptr = strtok(optarg, ",");//Arrays of the parameters <a>,<b>,<c>
-
-    //todo：assign the value to a,b,c
-
-    double a, b, c;
-
 
     // 分割第一个子字符串，并将其转换为浮点数赋值给a
     if (ptr != NULL)
