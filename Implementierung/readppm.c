@@ -30,6 +30,7 @@ uint8_t *readppm(const char *input_file, size_t *width, size_t *height)
     magic_number_s0(fd);
     magic_number_s1(fd);
     magic_number_s2(fd); // three states to get through magic number
+    
     struct digits_chain *start_of_width = getsize_s0(fd);
     getsize_s1(fd, start_of_width);                  // two states to get through width
     *width = get_number_from_digits(start_of_width); // this will release all nodes in linked list
@@ -45,11 +46,15 @@ uint8_t *readppm(const char *input_file, size_t *width, size_t *height)
         fclose(fd);
         exit(EXIT_FAILURE);
     }
+
+
     uint8_t *value_of_pixels = malloc((*width) * (*height) * 3); // allocate memory for input
     if (!value_of_pixels)
     {
         exit_failure_with_errmessage_and_release(fd, NULL, "Can not allocate space for input pixels.\n");
     }
+
+
     size_t success_read = fread(value_of_pixels, (*width) * (*height) * 3, 1, fd);
     if (!success_read) // read file failed?
     {

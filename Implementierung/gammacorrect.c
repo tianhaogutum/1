@@ -38,11 +38,12 @@ int main(int argc, char **argv)
 {
     program_path = argv[0]; // save program path as global
     parse_options(argc, argv);
-    printf("version is %d\nbenchmark_number is %d\ngamma is %f\ninput file name is %s\n", version, benchmark_number, _gamma, input_file_name); // for testing
+    printf("version is %d\nbenchmark_number is %d\ngamma is %f\ninput file name is %s\na_value is %f\nb_value is %f\nc_value is %f\n", version, benchmark_number, _gamma, input_file_name, a, b, c); // for testing
     /*We still need to check gamma, a, b, c values set by the users here.*/
     // following lines could be put into a function
     size_t width = 0;
     size_t height = 0;
+
     uint8_t *img = readppm(input_file_name, &width, &height); // we don't need to check the return value here, because if error occured, the program will terminate in readppm. And until now there is no ram/fd to release.
     uint8_t *result = malloc(width * height);
 
@@ -72,7 +73,6 @@ int main(int argc, char **argv)
     fclose(output);
     free(result);
     return 0;
-
 }
 
 static void parse_options(int argc, char **argv)
@@ -172,28 +172,51 @@ static void found_option_coeffs(void)
         exit_failure_with_errmessage("Option 'coeffs' is already set, please don't set it twice.\nProgram terminated.\n");
     }
 
-    char* ptr = strtok(optarg, ",");//Arrays of the parameters <a>,<b>,<c>
+    char *ptr = strtok(optarg, ",");
 
-    // 分割第一个子字符串，并将其转换为浮点数赋值给a
     if (ptr != NULL)
     {
-        a = strtod(ptr, NULL);
+        a = parseDataFromStr(ptr,"Option 'coeffs' conversion fails.\nProgram terminated.\n");
         ptr = strtok(NULL, ",");
     }
+    else
+    {
+        exit_failure_with_errmessage("Option 'coeffs' requires at least three argument.\nProgram terminated.\n");
+    }
 
-    // 分割第二个子字符串，并将其转换为浮点数赋值给b
     if (ptr != NULL)
     {
-        b = strtod(ptr, NULL);
+        b = parseDataFromStr(ptr,"Option 'coeffs' conversion fails.\nProgram terminated.\n");
         ptr = strtok(NULL, ",");
     }
+    else
+    {
+        exit_failure_with_errmessage("Option 'coeffs' requires at least three argument.\nProgram terminated.\n");
+    }
 
-    // 分割第三个子字符串，并将其转换为浮点数赋值给c
     if (ptr != NULL)
     {
-        c = strtod(ptr, NULL);
+        c = parseDataFromStr(ptr,"Option 'coeffs' conversion fails.\nProgram terminated.\n");
+        ptr = strtok(NULL, ",");
     }
-    
+    else
+    {
+        exit_failure_with_errmessage("Option 'coeffs' requires at least three arguments.\nProgram terminated.\n");
+    }
+
+    // more than three arguments
+    if (ptr != NULL)
+    {
+        exit_failure_with_errmessage("Option 'coeffs' requires exactly three arguments.\nProgram terminated.\n");
+    }
+
+    // a, b, c cannot be negative
+    if (a < 0 || b < 0 || c < 0)
+    {
+        exit_failure_with_errmessage("Coefficients a, b, c cannot be negative.\nProgram terminated.\n");
+    }
+
+    coeffs_set = true;
 }
 
 static void found_option_gamma(void)
@@ -202,7 +225,9 @@ static void found_option_gamma(void)
     {
         exit_failure_with_errmessage("Option 'gamma' is already set, please don't set it twice.\nProgram terminated.\n");
     }
-    _gamma = strtof(optarg, NULL);
+
+    parseDataFromStr(optarg,"Option 'gamma' conversion fails.\nProgram terminated.\n");
+
     gamma_set = true;
 }
 
@@ -221,4 +246,16 @@ static void exit_failure_with_errmessage(const char *errmessage)
     fprintf(stderr, "%s", errmessage);
     print_usage();
     exit(EXIT_FAILURE);
+}
+
+static float parseDataFromStr(char *str,const char *errmessage){
+    char *endptr;
+    errno = 0;
+    double value = strtof(str, &endptr);
+
+    if (endptr == str||errno == ERANGE) {
+        exit_failure_with_errmessage(errmessage);
+    }
+
+    return value;
 }
