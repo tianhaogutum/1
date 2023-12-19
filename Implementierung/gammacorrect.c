@@ -34,12 +34,13 @@ static void print_help(void);
 static void print_usage(void);
 static void exit_failure_with_errmessage(const char *); // note that error message must end with newline, this function will log the error to stderr and print usage, and then exit with failure
 static void check_values(void);
+static float parseDataFromStr(char *str, const char *errmessage);
 
 int main(int argc, char **argv)
 {
     program_path = argv[0]; // save program path as global
     parse_options(argc, argv);
-    printf("version is %d\nbenchmark_number is %d\ngamma is %f\ninput file name is %s\n", version, benchmark_number, _gamma, input_file_name); // for testing
+    printf("version is %d\nbenchmark_number is %d\ngamma is %f\ninput file name is %s\na is %f\nb is %f\nc is %f\n", version, benchmark_number, _gamma, input_file_name, a, b, c); // for testing
     check_values();
     // following lines could be put into a function
     size_t width = 0;
