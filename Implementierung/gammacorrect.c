@@ -165,29 +165,33 @@ static void found_option_coeffs(void)
         exit_failure_with_errmessage("Option 'coeffs' is already set, please don't set it twice.\nProgram terminated.\n");
     }
 
-    char *ptr = strtok(optarg, ",");
+    char* ptr = strtok(optarg, ",");//Arrays of the parameters <a>,<b>,<c>
 
-    if (ptr == NULL)
+    //todo：assign the value to a,b,c
+
+    double a, b, c;
+
+
+    // 分割第一个子字符串，并将其转换为浮点数赋值给a
+    if (ptr != NULL)
     {
-        exit_failure_with_errmessage("No Value for coeffs was given.\nProgram terminated.\n");
+        a = strtod(ptr, NULL);
+        ptr = strtok(NULL, ",");
     }
-    a = strtof(ptr, NULL);
 
-    ptr = strtok(NULL, ",");
-    if (ptr == NULL)
+    // 分割第二个子字符串，并将其转换为浮点数赋值给b
+    if (ptr != NULL)
     {
-        exit_failure_with_errmessage("No Value for coeffs was given.\nProgram terminated.\n");
+        b = strtod(ptr, NULL);
+        ptr = strtok(NULL, ",");
     }
-    b = strtof(ptr, NULL);
 
-    ptr = strtok(NULL, ",");
-    if (ptr == NULL)
+    // 分割第三个子字符串，并将其转换为浮点数赋值给c
+    if (ptr != NULL)
     {
-        exit_failure_with_errmessage("No Value for coeffs was given.\nProgram terminated.\n");
+        c = strtod(ptr, NULL);
     }
-    c = strtof(ptr, NULL);
-
-    coeffs_set = true;
+    
 }
 
 static void found_option_gamma(void)
