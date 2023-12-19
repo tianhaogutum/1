@@ -10,9 +10,9 @@ static char *input_file_name = NULL;  // input file name
 static _Bool o_set = false;           // is o set?
 static char *output_file_name = NULL; // output file name
 static _Bool coeffs_set = false;      // is coefficient set?
-static float a = 0;                   // temporary setting, should be initialized as the default a
-static float b = 0;                   // temporary setting, should be initialized as the default b
-static float c = 0;                   // temporary setting, should be initialized as the default c
+static float a = 0.2126;              // temporary setting, should be initialized as the default a
+static float b = 0.7152;              // temporary setting, should be initialized as the default b
+static float c = 0.0722;              // temporary setting, should be initialized as the default c
 static _Bool gamma_set = false;       // is gamma set?
 static float _gamma = 1;              // temporary setting, should be initialized as the default gamma
 static const char *program_path;      // stores the path of the program
@@ -23,7 +23,7 @@ static const struct option long_options[] = { // long options' table
     {"help", no_argument, 0, 'h'},
     {0, 0, 0, 0}};
 // function signatures
-static void parse_options(int argc, char** argv); // getopt_long()
+static void parse_options(int argc, char **argv); // getopt_long()
 static void found_option_V(void);                 // behaviour if found option '-V'
 static void found_option_B(void);                 // behaviour if found option '-B'
 static void found_option_o(void);                 // behaviour if found option '-o'
@@ -38,16 +38,37 @@ int main(int argc, char **argv)
 {
     program_path = argv[0]; // save program path as global
     parse_options(argc, argv);
-    printf("version is %d\nbenchmark_number is %d\ngamma is %f\ninput file name is %s\n", version, benchmark_number, _gamma, input_file_name);//for testing
+    printf("version is %d\nbenchmark_number is %d\ngamma is %f\ninput file name is %s\n", version, benchmark_number, _gamma, input_file_name); // for testing
     /*We still need to check gamma, a, b, c values set by the users here.*/
+    // following lines could be put into a function
     size_t width = 0;
     size_t height = 0;
-    uint8_t * img = readppm(input_file_name, &width, &height);//we don't need to check the return value here, because if error occured, the program will terminate in readppm. And until now there is no ram/fd to release.
-    free(img);//currently used to avoid leak sanitizer
+    uint8_t *img = readppm(input_file_name, &width, &height); // we don't need to check the return value here, because if error occured, the program will terminate in readppm. And until now there is no ram/fd to release.
+    uint8_t *result = malloc(width * height);
+    if (!result)
+    {
+        free(img);
+        fprintf(stderr, "%s", "memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+    gamma_correct(img, width, height, a, b, c, _gamma, result);
+    free(img); // currently used to avoid leak sanitizer
+    FILE *output = fopen(output_file_name, "w");
+    if (!output)
+    {
+        free(result);
+        fprintf(stderr, "cannot open output file.\n");
+        exit(EXIT_FAILURE);
+    }
+    char *meta_data = "P5\n512\n512\n255\n";
+    fwrite(meta_data, 15, 1, output);
+    fwrite(result, width * height, 1, output);
+    fclose(output);
+    free(result);
     return 0;
 }
 
-static void parse_options(int argc, char** argv)
+static void parse_options(int argc, char **argv)
 {
     int opt = 0;
     while ((opt = getopt_long(argc, argv, "V:B::o:h", long_options, NULL)) != -1)
@@ -112,7 +133,7 @@ static void found_option_B(void)
     }
     if (optarg)
     {
-        benchmark_number = strtol(optarg, NULL, 10);//strtol and strtof could end in error? error must be captured
+        benchmark_number = strtol(optarg, NULL, 10); // strtol and strtof could end in error? error must be captured
         if (benchmark_number < 100)
         {                                                                                                              // should be updated to guarantee a sufficient workload
             exit_failure_with_errmessage("The number of repetitions cannot be less than 100.\nProgram terminated.\n"); // should be updated accordingly
@@ -144,21 +165,24 @@ static void found_option_coeffs(void)
         exit_failure_with_errmessage("Option 'coeffs' is already set, please don't set it twice.\nProgram terminated.\n");
     }
 
-    char* ptr = strtok(optarg, ",");
+    char *ptr = strtok(optarg, ",");
 
-    if(ptr == NULL){
+    if (ptr == NULL)
+    {
         exit_failure_with_errmessage("No Value for coeffs was given.\nProgram terminated.\n");
     }
     a = strtof(ptr, NULL);
 
     ptr = strtok(NULL, ",");
-    if(ptr == NULL){
+    if (ptr == NULL)
+    {
         exit_failure_with_errmessage("No Value for coeffs was given.\nProgram terminated.\n");
     }
     b = strtof(ptr, NULL);
 
     ptr = strtok(NULL, ",");
-    if(ptr == NULL){
+    if (ptr == NULL)
+    {
         exit_failure_with_errmessage("No Value for coeffs was given.\nProgram terminated.\n");
     }
     c = strtof(ptr, NULL);

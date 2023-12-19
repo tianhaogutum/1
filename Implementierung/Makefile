@@ -1,6 +1,6 @@
 CC=gcc
 
-CFLAGS=-O3 -Wall -Wextra -fsanitize=address -fsanitize=undefined#valgrind reports error if -fsanitize=address
+CFLAGS=-O3 -lm -Wall -Wextra -fsanitize=address -fsanitize=undefined#valgrind reports error if -fsanitize=address
 
 .PHNOY: all
 all: gammacorrect
