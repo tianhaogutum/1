@@ -3,18 +3,18 @@
 #define VERSION_NUMBER 3 // suppose we have three versions, should be updated
 
 static _Bool v_set = false;           // is V set?
-static int version = 0;               // version number, default is zero
+static int version = 0;               // version number, default is zero, value checked in found_option_V
 static _Bool b_set = false;           // is B set?
-static int benchmark_number = 100;    // benchmark number, should be updated to default value
-static char *input_file_name = NULL;  // input file name
+static int benchmark_number = 100;    // benchmark number, should be updated to default value, value checked in found_option_B
+static char *input_file_name = NULL;  // input file name, value checked in parse_options
 static _Bool o_set = false;           // is o set?
-static char *output_file_name = NULL; // output file name
+static char *output_file_name = NULL; // output file name, value checked in check_value
 static _Bool coeffs_set = false;      // is coefficient set?
 static float a = 0.2126;              // temporary setting, should be initialized as the default a
 static float b = 0.7152;              // temporary setting, should be initialized as the default b
-static float c = 0.0722;              // temporary setting, should be initialized as the default c
+static float c = 0.0722;              // temporary setting, should be initialized as the default c, value checked in check_value
 static _Bool gamma_set = false;       // is gamma set?
-static float _gamma = 1;              // temporary setting, should be initialized as the default gamma
+static float _gamma = 1;              // temporary setting, should be initialized as the default gamma, value checked in check_value
 static const char *program_path;      // stores the path of the program
 
 static const struct option long_options[] = { // long options' table
@@ -33,13 +33,14 @@ static void found_option_gamma(void);             // behaviour if found option '
 static void print_help(void);
 static void print_usage(void);
 static void exit_failure_with_errmessage(const char *); // note that error message must end with newline, this function will log the error to stderr and print usage, and then exit with failure
+static void check_values(void);
 
 int main(int argc, char **argv)
 {
     program_path = argv[0]; // save program path as global
     parse_options(argc, argv);
-    printf("version is %d\nbenchmark_number is %d\ngamma is %f\ninput file name is %s\na_value is %f\nb_value is %f\nc_value is %f\n", version, benchmark_number, _gamma, input_file_name, a, b, c); // for testing
-    /*We still need to check gamma, a, b, c values set by the users here.*/
+    printf("version is %d\nbenchmark_number is %d\ngamma is %f\ninput file name is %s\n", version, benchmark_number, _gamma, input_file_name); // for testing
+    check_values();
     // following lines could be put into a function
     size_t width = 0;
     size_t height = 0;
@@ -176,7 +177,7 @@ static void found_option_coeffs(void)
 
     if (ptr != NULL)
     {
-        a = parseDataFromStr(ptr,"Option 'coeffs' conversion fails.\nProgram terminated.\n");
+        a = parseDataFromStr(ptr, "Option 'coeffs' conversion fails.\nProgram terminated.\n");
         ptr = strtok(NULL, ",");
     }
     else
@@ -186,7 +187,7 @@ static void found_option_coeffs(void)
 
     if (ptr != NULL)
     {
-        b = parseDataFromStr(ptr,"Option 'coeffs' conversion fails.\nProgram terminated.\n");
+        b = parseDataFromStr(ptr, "Option 'coeffs' conversion fails.\nProgram terminated.\n");
         ptr = strtok(NULL, ",");
     }
     else
@@ -196,7 +197,7 @@ static void found_option_coeffs(void)
 
     if (ptr != NULL)
     {
-        c = parseDataFromStr(ptr,"Option 'coeffs' conversion fails.\nProgram terminated.\n");
+        c = parseDataFromStr(ptr, "Option 'coeffs' conversion fails.\nProgram terminated.\n");
         ptr = strtok(NULL, ",");
     }
     else
@@ -225,7 +226,7 @@ static void found_option_gamma(void)
     {
         exit_failure_with_errmessage("Option 'gamma' is already set, please don't set it twice.\nProgram terminated.\n");
     }
-    _gamma = parseDataFromStr(optarg,"Option 'gamma' conversion fails.\nProgram terminated.\n");
+    _gamma = parseDataFromStr(optarg, "Option 'gamma' conversion fails.\nProgram terminated.\n");
     gamma_set = true;
 }
 
@@ -246,12 +247,30 @@ static void exit_failure_with_errmessage(const char *errmessage)
     exit(EXIT_FAILURE);
 }
 
-static float parseDataFromStr(char *str,const char *errmessage){
+static float parseDataFromStr(char *str, const char *errmessage)
+{
     char *endptr;
     errno = 0;
     float value = strtof(str, &endptr);
-    if (endptr == str||errno == ERANGE) {
+    if (endptr == str || errno == ERANGE)
+    {
         exit_failure_with_errmessage(errmessage);
     }
     return value;
+}
+
+static void check_values(void)
+{
+    if (!o_set)
+    {
+        exit_failure_with_errmessage("Option o is mandatory.\nProgram terminated.\n");
+    }
+    if (a == 0 && b == 0 && c == 0)
+    {
+        exit_failure_with_errmessage("Coefficients can not be all zeros.\nProgram terminated.\n");
+    }
+    if (_gamma < 0)
+    {
+        exit_failure_with_errmessage("Only positive gamma accepted.\nProgram terminated.\n");
+    }
 }

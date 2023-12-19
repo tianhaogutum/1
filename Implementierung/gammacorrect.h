@@ -1,5 +1,6 @@
 #include <getopt.h>
 #include <string.h>
+#include <errno.h>
 #include "V0.h"
 #include "readppm.h"
 #include <errno.h>
