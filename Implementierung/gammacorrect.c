@@ -225,9 +225,7 @@ static void found_option_gamma(void)
     {
         exit_failure_with_errmessage("Option 'gamma' is already set, please don't set it twice.\nProgram terminated.\n");
     }
-
-    parseDataFromStr(optarg,"Option 'gamma' conversion fails.\nProgram terminated.\n");
-
+    _gamma = parseDataFromStr(optarg,"Option 'gamma' conversion fails.\nProgram terminated.\n");
     gamma_set = true;
 }
 
@@ -251,11 +249,9 @@ static void exit_failure_with_errmessage(const char *errmessage)
 static float parseDataFromStr(char *str,const char *errmessage){
     char *endptr;
     errno = 0;
-    double value = strtof(str, &endptr);
-
+    float value = strtof(str, &endptr);
     if (endptr == str||errno == ERANGE) {
         exit_failure_with_errmessage(errmessage);
     }
-
     return value;
 }
