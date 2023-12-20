@@ -93,27 +93,6 @@ static PPMImage* readPPM(const char *filename)
 }
 
 
- float* greyMaker(uint8_t* ptr, float a, float b, float c, float gamma){
-     int n = 15;
-     float acc=0;
-     float* returnPtr; 
-     for(int i =0;i<n;i++){
-          printf("Irgendwas stimmt hier nicht!");
-          acc += a * *ptr++;
-          printf("WTF");
-          acc += b * *ptr++;
-          acc += c * *ptr++;
-          printf("HÄÄÄ");
-          acc = acc/(a+b+c);
-          printf("okay fuck");
-          //acc = pow((acc/255),gamma)*255;
-          *returnPtr = acc;
-          returnPtr++;
-     }
-
-     return returnPtr;
- }
-
 void createPGMfile(uint8_t* ptr, size_t width, size_t height, size_t maxval){
      //create new file
 
