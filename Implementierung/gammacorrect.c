@@ -34,7 +34,8 @@ static void print_help(void);
 static void print_usage(void);
 static void exit_failure_with_errmessage(const char *); // note that error message must end with newline, this function will log the error to stderr and print usage, and then exit with failure
 static void check_values(void);
-static float parseDataFromStr(char *str, const char *errmessage);
+static float parseFloatFromStr(char *str, const char *errmessage);
+static int parseIntFromStr(char *str, const char *errmessage);
 
 int main(int argc, char **argv)
 {
@@ -126,7 +127,7 @@ static void found_option_V(void)
     {
         exit_failure_with_errmessage("Option 'V' is already set, please don't set it twice.\nProgram terminated.\n");
     }
-    version = strtol(optarg, NULL, 10);
+    version = parseIntFromStr(optarg, "Option 'V' conversion fails.\nProgram terminated.\n");
     if (version < 0 || version > VERSION_NUMBER - 1)
     {
         exit_failure_with_errmessage("The given version number is not provided, provided versions are 0, 1, 2\nProgram terminated.\n"); // should be updated
@@ -142,7 +143,7 @@ static void found_option_B(void)
     }
     if (optarg)
     {
-        benchmark_number = strtol(optarg, NULL, 10); // strtol and strtof could end in error? error must be captured
+        benchmark_number = parseIntFromStr(optarg, "Option 'B' conversion fails.\nProgram terminated.\n");
         if (benchmark_number < 100)
         {                                                                                                              // should be updated to guarantee a sufficient workload
             exit_failure_with_errmessage("The number of repetitions cannot be less than 100.\nProgram terminated.\n"); // should be updated accordingly
@@ -176,9 +177,9 @@ static void found_option_coeffs(void)
 
     char *ptr = strtok(optarg, ",");
 
-    if (ptr != NULL)
+    if (ptr != NULL)//can we rewrite the following repeated code?
     {
-        a = parseDataFromStr(ptr, "Option 'coeffs' conversion fails.\nProgram terminated.\n");
+        a = parseFloatFromStr(ptr, "Option 'coeffs' conversion fails.\nProgram terminated.\n");
         ptr = strtok(NULL, ",");
     }
     else
@@ -188,7 +189,7 @@ static void found_option_coeffs(void)
 
     if (ptr != NULL)
     {
-        b = parseDataFromStr(ptr, "Option 'coeffs' conversion fails.\nProgram terminated.\n");
+        b = parseFloatFromStr(ptr, "Option 'coeffs' conversion fails.\nProgram terminated.\n");
         ptr = strtok(NULL, ",");
     }
     else
@@ -198,7 +199,7 @@ static void found_option_coeffs(void)
 
     if (ptr != NULL)
     {
-        c = parseDataFromStr(ptr, "Option 'coeffs' conversion fails.\nProgram terminated.\n");
+        c = parseFloatFromStr(ptr, "Option 'coeffs' conversion fails.\nProgram terminated.\n");
         ptr = strtok(NULL, ",");
     }
     else
@@ -227,7 +228,7 @@ static void found_option_gamma(void)
     {
         exit_failure_with_errmessage("Option 'gamma' is already set, please don't set it twice.\nProgram terminated.\n");
     }
-    _gamma = parseDataFromStr(optarg, "Option 'gamma' conversion fails.\nProgram terminated.\n");
+    _gamma = parseFloatFromStr(optarg, "Option 'gamma' conversion fails.\nProgram terminated.\n");
     gamma_set = true;
 }
 
@@ -248,13 +249,23 @@ static void exit_failure_with_errmessage(const char *errmessage)
     exit(EXIT_FAILURE);
 }
 
-static float parseDataFromStr(char *str, const char *errmessage)
+static float parseFloatFromStr(char *str, const char *errmessage)
 {
     char *endptr;
     errno = 0;
     float value = strtof(str, &endptr);
     if (endptr == str || errno == ERANGE)
     {
+        exit_failure_with_errmessage(errmessage);
+    }
+    return value;
+}
+
+static int parseIntFromStr(char *str, const char *errmessage){
+    char *endptr;
+    errno = 0;
+    int value = strtol(str, &endptr);
+    if(endptr == str || errno == ERANGE){
         exit_failure_with_errmessage(errmessage);
     }
     return value;
