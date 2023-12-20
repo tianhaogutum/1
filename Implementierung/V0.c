@@ -1,5 +1,5 @@
 #include "V0.h"
-
+#include <stdio.h>//for testing, should be removed
 void gamma_correct(const uint8_t *img, size_t width, size_t height, float a, float b, float c, float gamma, uint8_t *result)
 {
     float sum_coeffs = a + b + c;
@@ -10,6 +10,7 @@ void gamma_correct(const uint8_t *img, size_t width, size_t height, float a, flo
     {
         Q_x_y = (a * img[3 * i] + b * img[3 * i + 1] + c * img[3 * i + 2]) / sum_coeffs;
         result[i] = pow(Q_x_y / 255, gamma) * 255; // should handle edge cases, errors etc.
+        printf("%u\n", result[i]);
         i++;
     }
 }
