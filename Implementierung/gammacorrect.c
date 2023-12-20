@@ -36,6 +36,7 @@ static void exit_failure_with_errmessage(const char *); // note that error messa
 static void check_values(void);
 static float parseFloatFromStr(char *str, const char *errmessage);
 static int parseIntFromStr(char *str, const char *errmessage);
+static void allocate_for_ppm_pgm(size_t * width, size_t * height, uint8_t ** img, uint8_t ** result);
 
 int main(int argc, char **argv)
 {
@@ -43,22 +44,24 @@ int main(int argc, char **argv)
     parse_options(argc, argv);
     printf("version is %d\nbenchmark_number is %d\ngamma is %f\ninput file name is %s\na is %f\nb is %f\nc is %f\n", version, benchmark_number, _gamma, input_file_name, a, b, c); // for testing
     check_values();
-    // following lines could be put into a function
-    size_t width = 0;
-    size_t height = 0;
-
-    uint8_t *img = readppm(input_file_name, &width, &height); // we don't need to check the return value here, because if error occured, the program will terminate in readppm. And until now there is no ram/fd to release.
-    uint8_t *result = malloc(width * height);
-
-    if (!result)
+    size_t width, height;
+    uint8_t * img;
+    uint8_t * result;
+    allocate_for_ppm_pgm(&width, &height, &img, &result);
+    switch (version)
     {
+    case 0:
+        gamma_correct(img, width, height, a, b, c, _gamma, result);
+        break;
+    case 1:
+        gamma_correct_V1(img, width, height, a, b, c, _gamma, result);
+        break;
+    default:
+        fprintf(stderr, "A bug with version number happened. Please contact developer.\n");
         free(img);
-        fprintf(stderr, "%s", "memory allocation failed\n");
+        free(result);
         exit(EXIT_FAILURE);
     }
-
-    gamma_correct(img, width, height, a, b, c, _gamma, result);
-
     free(img); // currently used to avoid leak sanitizer
 
     FILE *output = fopen(output_file_name, "w");
@@ -264,7 +267,7 @@ static float parseFloatFromStr(char *str, const char *errmessage)
 static int parseIntFromStr(char *str, const char *errmessage){
     char *endptr;
     errno = 0;
-    int value = strtol(str, &endptr);
+    int value = strtol(str, &endptr, 10);
     if(endptr == str || errno == ERANGE){
         exit_failure_with_errmessage(errmessage);
     }
@@ -284,5 +287,16 @@ static void check_values(void)
     if (_gamma < 0)
     {
         exit_failure_with_errmessage("Only positive gamma accepted.\nProgram terminated.\n");
+    }
+}
+
+static void allocate_for_ppm_pgm(size_t * width, size_t * height, uint8_t ** img, uint8_t ** result){
+    *img = readppm(input_file_name, width, height); // we don't need to check the return value here, because if error occured, the program will terminate in readppm. And until now there is no ram/fd to release.
+    *result = malloc((*width) * (*height));
+    if (!(*result))
+    {
+        free(*img);
+        fprintf(stderr, "%s", "memory allocation failed\n");
+        exit(EXIT_FAILURE);
     }
 }

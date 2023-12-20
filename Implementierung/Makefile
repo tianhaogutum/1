@@ -4,11 +4,11 @@ CFLAGS=-O3 -lm -Wall -Wextra -fsanitize=address -fsanitize=undefined#valgrind re
 
 .PHNOY: all
 all: gammacorrect
-gammacorrect: gammacorrect.c readppm.c V0.c
+gammacorrect: gammacorrect.c readppm.c V0.c V1.c
 	$(CC) $(CFLAGS) -o $@ $^ 
 
 .PHNOY: debug
-debug: gammacorrect.c readppm.c V0.c
+debug: gammacorrect.c readppm.c V0.c V1.c
 	$(CC) -g $(CFLAGS) -o $@ $^
 
 .PHNOY: clean

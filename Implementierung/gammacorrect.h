@@ -3,7 +3,7 @@
 #include <errno.h>
 #include "V0.h"
 #include "readppm.h"
-#include <errno.h>
+#include "V1.h"
 
 #ifndef GAMMACORRECT_H
 #define GAMMACORRECT_H
