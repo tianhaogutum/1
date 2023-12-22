@@ -261,6 +261,9 @@ static float parseFloatFromStr(char *str, const char *errmessage)
     {
         exit_failure_with_errmessage(errmessage);
     }
+    if(__builtin_isnan(value) || __builtin_isinf(value)){
+        exit_failure_with_errmessage("The given argument in float can not be NaN or inf.\n");
+    }
     return value;
 }
 
