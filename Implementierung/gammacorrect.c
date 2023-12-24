@@ -296,7 +296,7 @@ static void check_values(void)
 static void allocate_for_ppm_pgm(size_t * width, size_t * height, uint8_t ** img, uint8_t ** result){
     *img = readppm(input_file_name, width, height); // we don't need to check the return value here, because if error occured, the program will terminate in readppm. And until now there is no ram/fd to release.
     *result = malloc((*width) * (*height));
-    if (!(*result))
+    if (!(*result))//if memory allocation failed, then release all resources
     {
         free(*img);
         fprintf(stderr, "%s", "memory allocation failed\n");
