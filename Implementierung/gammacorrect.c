@@ -1,7 +1,8 @@
 #include "gammacorrect.h"
+#include <time.h>
 
 #define VERSION_NUMBER 3 // suppose we have three versions, should be updated
-
+struct timespec start, end;
 static _Bool v_set = false;           // is V set?
 static int version = 0;               // version number, default is zero, value checked in found_option_V
 static _Bool b_set = false;           // is B set?
@@ -36,7 +37,7 @@ static void exit_failure_with_errmessage(const char *); // note that error messa
 static void check_values(void);
 static float parseFloatFromStr(char *str, const char *errmessage);
 static int parseIntFromStr(char *str, const char *errmessage);
-static void allocate_for_ppm_pgm(size_t * width, size_t * height, uint8_t ** img, uint8_t ** result);
+static void allocate_for_ppm_pgm(size_t *width, size_t *height, uint8_t **img, uint8_t **result);
 
 int main(int argc, char **argv)
 {
@@ -45,16 +46,31 @@ int main(int argc, char **argv)
     printf("version is %d\nbenchmark_number is %d\ngamma is %f\ninput file name is %s\na is %f\nb is %f\nc is %f\n", version, benchmark_number, _gamma, input_file_name, a, b, c); // for testing
     check_values();
     size_t width, height;
-    uint8_t * img;
-    uint8_t * result;
+    uint8_t *img;
+    uint8_t *result;
+
+    //todo:getStartTime for benchmark
+    //get start time
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
     allocate_for_ppm_pgm(&width, &height, &img, &result);
     switch (version)
     {
     case 0:
-        gamma_correct(img, width, height, a, b, c, _gamma, result);
+        for (int i = 0; i <= benchmark_number; ++i){
+            gamma_correct(img, width, height, a, b, c, _gamma, result);
+        }
+
+    //todo:getEndTime for benchmark
+    clock_gettime(CLOCK_MONOTONIC, &end);    
         break;
     case 1:
-        gamma_correct_V1(img, width, height, a, b, c, _gamma, result);
+        for (int i = 0; i <= benchmark_number; ++i){
+            gamma_correct_V1(img, width, height, a, b, c, _gamma, result);
+        }
+        
+
+    //todo:getEndTime for benchmark   
         break;
     default:
         fprintf(stderr, "A bug with version number happened. Please contact developer.\n");
@@ -180,7 +196,7 @@ static void found_option_coeffs(void)
 
     char *ptr = strtok(optarg, ",");
 
-    if (ptr != NULL)//can we rewrite the following repeated code?
+    if (ptr != NULL) // can we rewrite the following repeated code?
     {
         a = parseFloatFromStr(ptr, "Option 'coeffs' conversion fails.\nProgram terminated.\n");
         ptr = strtok(NULL, ",");
@@ -261,17 +277,20 @@ static float parseFloatFromStr(char *str, const char *errmessage)
     {
         exit_failure_with_errmessage(errmessage);
     }
-    if(__builtin_isnan(value) || __builtin_isinf(value)){
+    if (__builtin_isnan(value) || __builtin_isinf(value))
+    {
         exit_failure_with_errmessage("The given argument in float can not be NaN or inf.\n");
     }
     return value;
 }
 
-static int parseIntFromStr(char *str, const char *errmessage){
+static int parseIntFromStr(char *str, const char *errmessage)
+{
     char *endptr;
     errno = 0;
     int value = strtol(str, &endptr, 10);
-    if(endptr == str || errno == ERANGE){
+    if (endptr == str || errno == ERANGE)
+    {
         exit_failure_with_errmessage(errmessage);
     }
     return value;
@@ -293,10 +312,11 @@ static void check_values(void)
     }
 }
 
-static void allocate_for_ppm_pgm(size_t * width, size_t * height, uint8_t ** img, uint8_t ** result){
+static void allocate_for_ppm_pgm(size_t *width, size_t *height, uint8_t **img, uint8_t **result)
+{
     *img = readppm(input_file_name, width, height); // we don't need to check the return value here, because if error occured, the program will terminate in readppm. And until now there is no ram/fd to release.
     *result = malloc((*width) * (*height));
-    if (!(*result))//if memory allocation failed, then release all resources
+    if (!(*result)) // if memory allocation failed, then release all resources
     {
         free(*img);
         fprintf(stderr, "%s", "memory allocation failed\n");
