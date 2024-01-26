@@ -23,14 +23,24 @@ void gamma_correct_V1(const uint8_t *img, size_t width, size_t height, float a, 
 
 static float pow_with_taylor_expansion(float base, float gamma) // comput base ** gamma
 {
+    
+    if(base <= 0.5 && gamma >= 150) // if base is less than 0.5 and gamma is greater than 150, then the result is always 0
+    {
+        return 0;
+    }
+
     if (base == 1.0) // if base is one, then the result is always 1
     {
         return 1;
     }
+    
+    ///todo:this step can move to the outer function
+    
     if (gamma > MAX_gamma) // if base is less than 1, then if gamma is greater than MAX_gamma, return 0
     {
         return 0;
     }
+
     uint32_t index = gamma;
     gamma -= index;
     float ret = int_power(base, index);
@@ -45,6 +55,9 @@ static float decimal_power_with_taylor_expansion(float base, float decimal_gamma
     uint32_t counter = 1; // counter of terms
     float current_pow = decimal_gamma;
     float term = current_pow * base_minus_a;
+
+    //todo:Magic number 0.00000001 is used to avoid floating point error?
+
     while (term > 0.00000001 || term < -0.00000001)
     {
         ret += term;
@@ -60,6 +73,10 @@ static float int_power(float base, uint32_t int_pow)
     float current_digit = base;
     float result = 1;
     uint32_t index_bit = 1;
+
+    ///todo:if gamma smaller than 26, we would rather calculate it directly
+    ///todo:can change 32 to 26 
+
     for (size_t i = 0; i < 32; ++i)
     {
         if (index_bit & int_pow)
