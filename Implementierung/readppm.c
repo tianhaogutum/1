@@ -1,5 +1,4 @@
 #include "readppm.h"
-
 // for all functions here, if fd is zero, then it's undefined behaviour
 // state machine for magic number part, three functions for three possible status
 static void magic_number_s0(FILE *fd);
@@ -13,13 +12,79 @@ static void enter_and_exit_comment_with_errorfree(FILE *fd, struct digits_chain 
 static void free_from_start(struct digits_chain *start);                                                         // helper function to release a single linked list from head
 static void exit_failure_with_errmessage_and_release(FILE *fd, struct digits_chain *start, const char *err_msg); // close input file and release allocated memory for a linked list, if start is NULL, then only close fd
 
+static FILE *get_metadata(const char *input_file, size_t *width, size_t *height); // read metadata from input file and returns a file descriptor which points to the start of the image content
+
 struct digits_chain // linked list to store width, height and maxval, then convert the list to size_t
 {
     char digit;
     struct digits_chain *next;
 };
 
-uint8_t *readppm(const char *input_file, size_t *width, size_t *height)
+uint8_t *readppm_for_seq(const char *input_file, size_t *width, size_t *height)
+{ // result used for V0 and V1
+    FILE *fd = get_metadata(input_file, width, height);
+    uint8_t *value_of_pixels = malloc((*width) * (*height) * 3); // allocate memory for input
+    if (!value_of_pixels)
+    {
+        exit_failure_with_errmessage_and_release(fd, NULL, "Can not allocate space for input pixels.\n");
+    }
+    size_t success_read = fread(value_of_pixels, (*width) * (*height) * 3, 1, fd);
+    if (!success_read) // read file failed?
+    {
+        free(value_of_pixels);
+        exit_failure_with_errmessage_and_release(fd, NULL, "Read pixel values of input file failed. Is your input file deprecated?\n");
+    }
+    printf("width is %lu\nheight is %lu\n", *width, *height); // only for testing, will be removed
+    fclose(fd);
+    return value_of_pixels;
+}
+
+void readppm_for_simd(const char *input_file, size_t *width, size_t *height, float **red_in_pixels, float **green_in_pixels, float **blue_in_pixels)
+{ // result used for V2, save value of three different colors into three different buffers
+    FILE *fd = get_metadata(input_file, width, height);
+    size_t number_of_pixels = (*width) * (*height);
+    size_t color_buffer_size = ((number_of_pixels << 2) & 0xfffffffffffffff0) + 16;//size of buffer for each color, the start address of the buffer will be aligned to 16
+    *red_in_pixels = aligned_alloc(16, color_buffer_size);
+    if (!(*red_in_pixels)) // allocation failed?
+    {
+        exit_failure_with_errmessage_and_release(fd, NULL, "Can not allocate space for red of input pixels.\n");
+    }
+    *green_in_pixels = aligned_alloc(16, color_buffer_size);
+    if (!(*green_in_pixels)) // allocation failed?
+    {
+        free(*red_in_pixels);
+        exit_failure_with_errmessage_and_release(fd, NULL, "Can not allocate space for green of input pixels.\n");
+    }
+    *blue_in_pixels = aligned_alloc(16, color_buffer_size);
+    if (!(*blue_in_pixels)) // allocation failed?
+    {
+        free(*red_in_pixels);
+        free(*green_in_pixels);
+        exit_failure_with_errmessage_and_release(fd, NULL, "Can not allocate space for blue of input pixels.\n");
+    }
+    size_t success_read = 0;
+    uint8_t integer_byte_value = 0;
+    for (size_t i = 0; i < number_of_pixels; ++i) // read the value of three colors of a pixel and save into a buffer accordingly
+    {
+        success_read += fread(&integer_byte_value, 1, 1, fd);
+        *((*red_in_pixels) + i) = integer_byte_value;
+        success_read += fread(&integer_byte_value, 1, 1, fd);
+        *((*green_in_pixels) + i) = integer_byte_value;
+        success_read += fread(&integer_byte_value, 1, 1, fd);
+        *((*blue_in_pixels) + i) = integer_byte_value;
+    }
+    if (success_read != 3 * number_of_pixels) // read file failed?
+    {
+        free(*red_in_pixels);
+        free(*green_in_pixels);
+        free(*blue_in_pixels);
+        exit_failure_with_errmessage_and_release(fd, NULL, "Read pixel values of input file failed. Is your input file deprecated?\n");
+    }
+    printf("width is %lu\nheight is %lu\n", *width, *height); // only for testing, will be removed
+    fclose(fd);
+}
+
+static FILE *get_metadata(const char *input_file, size_t *width, size_t *height)
 {
     FILE *fd = fopen(input_file, "r");
     if (!fd)
@@ -42,27 +107,9 @@ uint8_t *readppm(const char *input_file, size_t *width, size_t *height)
     size_t maxval = get_number_from_digits(start_of_maxval); // get number and release all nodes in linked list
     if (maxval != 255)                                       // check if is picture is 24bpp
     {
-        fprintf(stderr, "This program only accept 24 bpp pictures, which means the maxval of your picture has to be 255. However, the maxval in the given picture is %lu.\n", maxval);
-        fclose(fd);
-        exit(EXIT_FAILURE);
+        exit_failure_with_errmessage_and_release(fd, NULL, "This program only accept 24 bpp pictures, which means the maxval of your picture has to be 255. However, the maxval in the given picture is %lu.\n");
     }
-    uint8_t *value_of_pixels = malloc((*width) * (*height) * 3); // allocate memory for input
-    if (!value_of_pixels)
-    {
-        exit_failure_with_errmessage_and_release(fd, NULL, "Can not allocate space for input pixels.\n");
-    }
-
-    size_t success_read = fread(value_of_pixels, (*width) * (*height) * 3, 1, fd);
-    if (!success_read) // read file failed?
-    {
-        fprintf(stderr, "%s", "Read pixel values of input file failed. Is your input file deprecated?\n");
-        fclose(fd);
-        free(value_of_pixels);
-        exit(EXIT_FAILURE);
-    }
-    printf("width is %lu\nheight is %lu\n", *width, *height); // only for testing, will be removed
-    fclose(fd);
-    return value_of_pixels;
+    return fd;
 }
 
 static void magic_number_s0(FILE *fd)
@@ -225,7 +272,7 @@ static void free_from_start(struct digits_chain *start) // free linked list with
     }
 }
 
-static void exit_failure_with_errmessage_and_release(FILE *fd, struct digits_chain *start, const char *err_msg) // error exit after releasing resources and an error feedback
+static void exit_failure_with_errmessage_and_release(FILE *fd, struct digits_chain *start, const char *err_msg) // error exit after releasing resources and an error feedback, if start points to start of digit chain, then release the chain, otherwise only close the file
 {
     fprintf(stderr, "%s", err_msg);
     fclose(fd);

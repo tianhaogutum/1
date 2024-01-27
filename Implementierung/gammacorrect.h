@@ -4,6 +4,8 @@
 #include "V0.h"
 #include "readppm.h"
 #include "V1.h"
+#include "V2.h"
+#include <time.h>
 
 #ifndef GAMMACORRECT_H
 #define GAMMACORRECT_H

@@ -1,8 +1,7 @@
 #include "gammacorrect.h"
-#include <time.h>
 
 #define VERSION_NUMBER 3 // suppose we have three versions, should be updated
-struct timespec start, end;
+
 static _Bool v_set = false;           // is V set?
 static int version = 0;               // version number, default is zero, value checked in found_option_V
 static _Bool b_set = false;           // is B set?
@@ -17,83 +16,51 @@ static float c = 0.0722;              // temporary setting, should be initialize
 static _Bool gamma_set = false;       // is gamma set?
 static float _gamma = 1;              // temporary setting, should be initialized as the default gamma, value checked in check_value
 static const char *program_path;      // stores the path of the program
-
-static const struct option long_options[] = { // long options' table
+// long options' table
+static const struct option long_options[] = {
     {"coeffs", required_argument, 0, 256},
     {"gamma", required_argument, 0, 257},
     {"help", no_argument, 0, 'h'},
     {0, 0, 0, 0}};
 // function signatures
-static void parse_options(int argc, char **argv); // getopt_long()
-static void found_option_V(void);                 // behaviour if found option '-V'
-static void found_option_B(void);                 // behaviour if found option '-B'
-static void found_option_o(void);                 // behaviour if found option '-o'
-static void found_option_h(void);                 // behaviour if found option '-h' or '--help'
-static void found_option_coeffs(void);            // behaviour if found option '--coeffs'
-static void found_option_gamma(void);             // behaviour if found option '--gamma'
-static void print_help(void);
-static void print_usage(void);
-static void exit_failure_with_errmessage(const char *); // note that error message must end with newline, this function will log the error to stderr and print usage, and then exit with failure
-static void check_values(void);
-static float parseFloatFromStr(char *str, const char *errmessage);
-static int parseIntFromStr(char *str, const char *errmessage);
-static void allocate_for_ppm_pgm(size_t *width, size_t *height, uint8_t **img, uint8_t **result);
-
+static void parse_options(int argc, char **argv);                                                                                                          // getopt_long()
+static void found_option_V(void);                                                                                                                          // behaviour if found option '-V'
+static void found_option_B(void);                                                                                                                          // behaviour if found option '-B'
+static void found_option_o(void);                                                                                                                          // behaviour if found option '-o'
+static void found_option_h(void);                                                                                                                          // behaviour if found option '-h' or '--help'
+static void found_option_coeffs(void);                                                                                                                     // behaviour if found option '--coeffs'
+static void found_option_gamma(void);                                                                                                                      // behaviour if found option '--gamma'
+static void print_help(void);                                                                                                                              // print usage
+static void print_usage(void);                                                                                                                             // print help
+static void exit_failure_with_errmessage(const char *);                                                                                                    // note that error message must end with newline, this function will log the error to stderr and print usage, and then exit with failure
+static void check_values(void);                                                                                                                            // check if all input values are legal
+static float parseFloatFromStr(char *str, const char *errmessage);                                                                                         // parse a String into float, handle errors
+static int parseIntFromStr(char *str, const char *errmessage);                                                                                             // parse a String into int, handle errors
+static void allocate_for_ppm_pgm_seq(size_t *width, size_t *height, uint8_t **img, uint8_t **result);                                                      // allocate space for input file and output file, which used for sequential implementation, V0 & V1
+static void gamma_correct_seq(void (*gamma_correct)(const uint8_t *, size_t, size_t, float, float, float, float, uint8_t *));                              // this function takes a pointer to a gamma correction function as parameter, which can be a pointer to gamma_correct or a pointer to gamma_correct_V1                                                                           // use taylor series to compute gamma correction sequentially, greyscale conversion will also be sequential
+static void gamma_correct_simd(void (*gamma_correct)(float *, float *, float *, size_t, size_t, float, float, float, float, uint8_t *)); // this function takes a pointer to a gamma correction function as parameter, which can be a pointer to gamma_correct_V2
+static _Bool save_output_to_outputfile(size_t width, size_t height, uint8_t *output, FILE * fd);                                                                       // save the output into the given output file
 int main(int argc, char **argv)
 {
     program_path = argv[0]; // save program path as global
     parse_options(argc, argv);
     printf("version is %d\nbenchmark_number is %d\ngamma is %f\ninput file name is %s\na is %f\nb is %f\nc is %f\n", version, benchmark_number, _gamma, input_file_name, a, b, c); // for testing
     check_values();
-    size_t width, height;
-    uint8_t *img;
-    uint8_t *result;
-
-    //todo:getStartTime for benchmark
-    //get start time
-    clock_gettime(CLOCK_MONOTONIC, &start);
-
-    allocate_for_ppm_pgm(&width, &height, &img, &result);
     switch (version)
     {
     case 0:
-        for (int i = 0; i <= benchmark_number; ++i){
-            gamma_correct(img, width, height, a, b, c, _gamma, result);
-        }
-
-    //todo:getEndTime for benchmark
-    clock_gettime(CLOCK_MONOTONIC, &end);    
+        gamma_correct_seq(gamma_correct);
         break;
     case 1:
-        for (int i = 0; i <= benchmark_number; ++i){
-            gamma_correct_V1(img, width, height, a, b, c, _gamma, result);
-        }
-        
-
-    //todo:getEndTime for benchmark   
+        gamma_correct_seq(gamma_correct_V1);
+        break;
+    case 2:
+        gamma_correct_simd(gamma_correct_V2);
         break;
     default:
-        fprintf(stderr, "A bug with version number happened. Please contact developer.\n");
-        free(img);
-        free(result);
+        fprintf(stderr, "There is a bug with version number, please contact developer.\n");
         exit(EXIT_FAILURE);
     }
-    free(img); // currently used to avoid leak sanitizer
-
-    FILE *output = fopen(output_file_name, "w");
-
-    if (!output)
-    {
-        free(result);
-        fprintf(stderr, "cannot open output file.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    char *meta_data = "P5\n512\n512\n255\n";
-    fwrite(meta_data, 15, 1, output);
-    fwrite(result, width * height, 1, output);
-    fclose(output);
-    free(result);
     return 0;
 }
 
@@ -187,7 +154,7 @@ static void found_option_h(void)
     exit(EXIT_SUCCESS);
 }
 
-static void found_option_coeffs(void)
+static void found_option_coeffs(void) // move value check into check values
 {
     if (coeffs_set)
     {
@@ -312,9 +279,9 @@ static void check_values(void)
     }
 }
 
-static void allocate_for_ppm_pgm(size_t *width, size_t *height, uint8_t **img, uint8_t **result)
+static void allocate_for_ppm_pgm_seq(size_t *width, size_t *height, uint8_t **img, uint8_t **result)
 {
-    *img = readppm(input_file_name, width, height); // we don't need to check the return value here, because if error occured, the program will terminate in readppm. And until now there is no ram/fd to release.
+    *img = readppm_for_seq(input_file_name, width, height); // we don't need to check the return value here, because if allocation error occured, the program will terminate in readppm_for_seq. And until now there is no ram/fd to release.
     *result = malloc((*width) * (*height));
     if (!(*result)) // if memory allocation failed, then release all resources
     {
@@ -322,4 +289,110 @@ static void allocate_for_ppm_pgm(size_t *width, size_t *height, uint8_t **img, u
         fprintf(stderr, "%s", "memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
+}
+
+static void allocate_for_ppm_pgm_simd(size_t *width, size_t *height, float **red_in_pixels, float **green_in_pixels, float **blue_in_pixels, uint8_t **result)
+{
+    readppm_for_simd(input_file_name, width, height, red_in_pixels, green_in_pixels, blue_in_pixels);
+    *result = malloc((*width) * (*height));
+    if (!(*result)) // if memory allocation failed, then release all resources
+    {
+        free(*(red_in_pixels));
+        free(*(green_in_pixels));
+        free(*(blue_in_pixels));
+        fprintf(stderr, "%s", "memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+static void gamma_correct_seq(void (*gamma_correct)(const uint8_t *, size_t, size_t, float, float, float, float, uint8_t *))
+{
+    size_t width, height;
+    uint8_t *input = NULL;
+    uint8_t *output = NULL;
+    allocate_for_ppm_pgm_seq(&width, &height, &input, &output);
+    gamma_correct(input, width, height, a, b, c, _gamma, output);
+    FILE * fd = fopen(output_file_name, "w");
+    if(!fd){
+        free(input);
+        free(output);
+        fprintf(stderr, "Cannot open output file. Program terminated.\n");
+        exit(EXIT_FAILURE);
+    }
+    if(!save_output_to_outputfile(width, height, output, fd)){
+        free(input);
+        free(output);
+        fclose(fd);
+        fprintf(stderr, "Failed to write into output file. Program terminated.\n");
+        exit(EXIT_FAILURE);
+    }
+    if (b_set)
+    {
+        struct timespec start;
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        for (int i = 0; i < benchmark_number; ++i)
+        {
+            gamma_correct(input, width, height, a, b, c, _gamma, output);
+        }
+        struct timespec end;
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        double time = end.tv_sec - start.tv_sec + 1e-9 *(end.tv_nsec - start.tv_nsec);
+        printf("This execution takes %lf.\n", time);
+    }
+    free(input);
+    free(output);//free output buffer here
+    fclose(fd);
+}
+
+static void gamma_correct_simd(void (*gamma_correct)(float *, float *, float *, size_t, size_t, float, float, float, float, uint8_t *))
+{
+    size_t width, height;
+    float * red_in_pixels = NULL;
+    float * green_in_pixels = NULL;
+    float * blue_in_pixels = NULL;
+    uint8_t *output = NULL;
+    allocate_for_ppm_pgm_simd(&width, &height, &red_in_pixels, &green_in_pixels, &blue_in_pixels, &output);
+    gamma_correct(red_in_pixels, green_in_pixels, blue_in_pixels, width, height, a, b, c, _gamma, output);
+    FILE * fd = fopen(output_file_name, "w");
+    if(!fd){
+        free(red_in_pixels);
+        free(green_in_pixels);
+        free(blue_in_pixels);
+        free(output);
+        fprintf(stderr, "Cannot open output file. Program terminated.\n");
+        exit(EXIT_FAILURE);
+    }
+    if(!save_output_to_outputfile(width, height, output, fd)){
+        free(red_in_pixels);
+        free(green_in_pixels);
+        free(blue_in_pixels);
+        free(output);
+        fclose(fd);
+        fprintf(stderr, "Failed to write into output file. Program terminated.\n");
+        exit(EXIT_FAILURE);
+    }
+    if(b_set){
+        struct timespec start;
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        for(int i = 0; i < benchmark_number; ++i){
+            gamma_correct(red_in_pixels, green_in_pixels, blue_in_pixels, width, height, a, b, c, _gamma, output);
+        }
+        struct timespec end;
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        double time = end.tv_sec - start.tv_sec + 1e-9 *(end.tv_nsec - start.tv_nsec);
+        printf("This execution takes %lf.\n", time);
+    }
+    free(red_in_pixels);
+    free(green_in_pixels);
+    free(blue_in_pixels);
+    free(output);//free output buffer here
+    fclose(fd);
+}
+
+static _Bool save_output_to_outputfile(size_t width, size_t height, uint8_t *output, FILE * fd){//fd has already been checked in the caller function
+    fprintf(fd, "P5\n%lu\n%lu\n255\n", width, height);
+    if(fwrite(output, width * height, 1, fd) != 1){//write result into output file and check if succeeded
+        return false;
+    }
+    return true;
 }
