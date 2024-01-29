@@ -1,6 +1,5 @@
 #include "V1.h"
 #define MAX_gamma 67075968 // if base is not 1 and gamma exceeds this limit, then the result of power multiplied by 255 is always smaller then one, and after conversion to uint_8 it will be zero
-#include <stdio.h>         //for testing and debugging, should be removed
 
 static float pow_with_taylor_expansion(float, float);
 static float int_power(float, uint32_t);
@@ -16,7 +15,6 @@ void gamma_correct_V1(const uint8_t *img, size_t width, size_t height, float a, 
     {
         Q_x_y = (a * img[3 * i] + b * img[3 * i + 1] + c * img[3 * i + 2]) / sum_coeffs;
         result[i] = pow_with_taylor_expansion(Q_x_y / 255, gamma) * 255;
-        printf("%.10f\n", pow_with_taylor_expansion(Q_x_y / 255, gamma)); // for testing
         i++;
     }
 }
