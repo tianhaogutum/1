@@ -4,21 +4,51 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% TODO: Ersetzen Sie in den folgenden Zeilen die entsprechenden -Texte-
 %% mit den richtigen Werten.
-\newcommand{\theGroup}{IhreGruppennummer} % Beispiel: 42
-\newcommand{\theNumber}{IhreProjektnummer} % Beispiel: A123
-\author{Vorname1 Nachname1 \and Vorname2 Nachname2 \and Vorname3 Nachname3}
-\date{AktuellesSemester} % Beispiel: Wintersemester 2019/20
+\newcommand{\theGroup}{140} % Beispiel: 42
+\newcommand{\theNumber}{A208} % Beispiel: A123
+\author{Tianhao Gu \and Zhongfang Wang \and Julien Escaig}
+\date{Wintersemester 2023/24} % Beispiel: Wintersemester 2019/20
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Diese Zeile bitte -nicht- aendern.
 \title{Gruppe \theGroup{} -- Abgabe zu Aufgabe \theNumber}
 
-\begin{document}
-\maketitle
 
+% document content
+\begin{document}
+
+
+% einleitung content
 \section{Einleitung}
 
+\par
+Unser Programm betrachtet aus der Perspektive einer Black Box, nimmt ein Bild im 24bpp PPM-Format entgegen und gibt dieses Bild nach einer Graustufen Konvertierung und Gamma-Korrektur aus, wobei es im PGM-Format gespeichert wird. PGM (Portable Graymap Format) und PPM (Portable Pixmap Format) sind Teil des Netpbm-Bildformats. PPM ist ein einfaches Dateiformat für Farbbitmapbilder. 24bpp (Bits pro Pixel) bedeutet, dass jedes Pixel mit 24 Bits repräsentiert wird, 8 Bits für jede Farbe (nämlich Rot R, Grün G, Blau B). 
+\par
+Unser Programm akzeptiert nur P6-Typ PPM-Eingaben. P6 bezieht sich auf das Binärformat, das im Gegensatz zum ASCII-basierten P3-Typ kompakter und schneller in der Lese-/Schreibgeschwindigkeit ist.Unten ist ein einfaches Beispiel, das dem folgenden Bild entspricht(P6 PPM).
+% graph
 
+\par
+Wir verwenden eine Formel für die Graustufen Konvertierung, um einen gewichteten Durchschnittswert der R-, G- und B-Werte jedes Pixels zu ermitteln und diesen in der PGM zu speichern.Wir wählen PGM, weil es Graustufenbilder speichert. Jeder Pixelwert liegt zwischen 0 und dem maximalen Grauwert, wobei 0 normalerweise Schwarz darstellt, der maximale Grauwert Weiß und die Zwischenwerte verschiedene Grautöne. Der maximale Grauwert ist üblicherweise 255 (8 Bits).Hier muss aber beachtet werden, wie die "Gewichte" von RGB gewählt werden. 
+\par
+Aufgrund der Eigenschaften des menschlichen visuellen Systems (HVS), wie Empfindlichkeit gegenüber verschiedenen Farben und Helligkeiten, könnten diese die optimalen Werte der Parameter beeinflussen. Beispielsweise ist das menschliche Auge empfindlicher für Grün als für Rot und Blau, so dass bei der Umwandlung von Farbbildern in Graustufenbilder das Gewicht der grünen Komponente größer sein könnte als das der roten und blauen Komponenten.Wir setzen die Standardwerte von a, b, c wie folgt fest:a=0.2126 b=0.7152 c=0.0722 . Dann mitteln wir die RGB-Werte gewichtet.Das Graustufenbild von Bild (a), das durch Anwendung der Standardwerte a,b,c erhalten wird, sieht wie folgt aus:
+% graph
+
+\par
+Wir haben die Aufgabe grundsätzlich abgeschlossen, aber um die menschliche Sicht anzupassen, führen wir eine Gammakorrektur durch. Gammakorrektur ist eine Technik zur Anpassung der Helligkeit oder des Kontrastes von Bildern oder Videos. Ihr Zweck besteht darin, dass das Bild im menschlichen Sehsystem natürlicher wirkt. Der Gammawert ist der Parameter, der diese Korrektur steuert. Es ist eine positive Zahl, die normalerweise zwischen 1,0 und 2,2 liegt.
+\par
+Unser Programm ist jedoch in der Lage, alle Gammawerte größer als 0 zu empfangen.Also je höher der Gammawert, desto höher der Kontrast des Bildes und desto größer die Unterschiede zwischen hellen und dunklen Bereichen. Umgekehrt ist der Kontrast des Bildes bei einem niedrigeren Gammawert geringer und die Unterschiede zwischen hellen und dunklen Bereichen sind geringer. Wir wenden die folgende Formel für jeden Graustufenwert an, wobei Gamma auf 1 gesetzt wird, wenn der Benutzer es nicht angibt:
+% gamma fomular
+
+\par
+Unten stehen drei Vergleiche für die Graustufenbild Bild (b) : Gammawert auf 0.1 eingestellt, ohne Gammakorrektur, Gamma-Wert auf 10 eingestellt.
+% three graph
+
+
+
+
+
+
+% solution content
 \section{Lösungsansatz}
 
 
@@ -26,11 +56,11 @@
 \section{Korrektheit/Genauigkeit}
 
 
+
 \section{Performanzanalyse}
 
 
 \section{Zusammenfassung und Ausblick}
-
 % TODO: Fuegen Sie Ihre Quellen der Datei Ausarbeitung.bib hinzu
 % Referenzieren Sie diese dann mit \cite{}.
 % Beispiel: CR2 ist ein Register der x86-Architektur~\cite{intel2017man}.
