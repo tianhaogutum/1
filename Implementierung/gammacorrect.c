@@ -37,8 +37,8 @@ static void check_values(void);                                                 
 static float parseFloatFromStr(char *str, const char *errmessage);                                                                                         // parse a String into float, handle errors
 static int parseIntFromStr(char *str, const char *errmessage);                                                                                             // parse a String into int, handle errors
 static void allocate_for_ppm_pgm_seq(size_t *width, size_t *height, uint8_t **img, uint8_t **result);                                                      // allocate space for input file and output file, which used for sequential implementation, V0 & V1
-static void gamma_correct_seq(void (*gamma_correct)(const uint8_t *, size_t, size_t, float, float, float, float, uint8_t *));                              // this function takes a pointer to a gamma correction function as parameter, which can be a pointer to gamma_correct or a pointer to gamma_correct_V1                                                                           // use taylor series to compute gamma correction sequentially, greyscale conversion will also be sequential
-static void gamma_correct_simd(void (*gamma_correct)(float *, float *, float *, size_t, size_t, float, float, float, float, uint8_t *)); // this function takes a pointer to a gamma correction function as parameter, which can be a pointer to gamma_correct_V2
+static void gamma_correct_seq(_Bool isDefault);                              // this function takes a pointer to a gamma correction function as parameter, which can be a pointer to gamma_correct or a pointer to gamma_correct_V1                                                                           // use taylor series to compute gamma correction sequentially, greyscale conversion will also be sequential
+static void gamma_correct_simd(void); // this function takes a pointer to a gamma correction function as parameter, which can be a pointer to gamma_correct_V2
 static _Bool save_output_to_outputfile(size_t width, size_t height, uint8_t *output, FILE * fd);                                                                       // save the output into the given output file
 int main(int argc, char **argv)
 {
@@ -49,13 +49,13 @@ int main(int argc, char **argv)
     switch (version)
     {
     case 0:
-        gamma_correct_seq(gamma_correct);
+        gamma_correct_seq(true);
         break;
     case 1:
-        gamma_correct_seq(gamma_correct_V1);
+        gamma_correct_seq(false);
         break;
     case 2:
-        gamma_correct_simd(gamma_correct_V2);
+        gamma_correct_simd();
         break;
     default:
         fprintf(stderr, "There is a bug with version number, please contact developer.\n");
@@ -305,13 +305,20 @@ static void allocate_for_ppm_pgm_simd(size_t *width, size_t *height, float **red
     }
 }
 
-static void gamma_correct_seq(void (*gamma_correct)(const uint8_t *, size_t, size_t, float, float, float, float, uint8_t *))
+static void gamma_correct_seq(_Bool isDefault)
 {
     size_t width, height;
     uint8_t *input = NULL;
     uint8_t *output = NULL;
     allocate_for_ppm_pgm_seq(&width, &height, &input, &output);
-    gamma_correct(input, width, height, a, b, c, _gamma, output);
+    if(isDefault)
+    {
+        gamma_correct(input, width, height, a, b, c, _gamma, output);
+    }
+    else
+    {
+        gamma_correct_V1(input, width, height, a, b, c, _gamma, output);
+    }
     FILE * fd = fopen(output_file_name, "w");
     if(!fd){
         free(input);
@@ -344,7 +351,7 @@ static void gamma_correct_seq(void (*gamma_correct)(const uint8_t *, size_t, siz
     fclose(fd);
 }
 
-static void gamma_correct_simd(void (*gamma_correct)(float *, float *, float *, size_t, size_t, float, float, float, float, uint8_t *))
+static void gamma_correct_simd(void)
 {
     size_t width, height;
     float * red_in_pixels = NULL;
@@ -352,7 +359,7 @@ static void gamma_correct_simd(void (*gamma_correct)(float *, float *, float *, 
     float * blue_in_pixels = NULL;
     uint8_t *output = NULL;
     allocate_for_ppm_pgm_simd(&width, &height, &red_in_pixels, &green_in_pixels, &blue_in_pixels, &output);
-    gamma_correct(red_in_pixels, green_in_pixels, blue_in_pixels, width, height, a, b, c, _gamma, output);
+    gamma_correct_V2(red_in_pixels, green_in_pixels, blue_in_pixels, width, height, a, b, c, _gamma, output);
     FILE * fd = fopen(output_file_name, "w");
     if(!fd){
         free(red_in_pixels);
