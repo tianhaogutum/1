@@ -160,33 +160,30 @@ Da Gamma eine Fließkommazahl ist, ist der Ganzzahlanteil maximal 67075968, also
 Das Programm verteilt alle Funktionen sinnvoll auf die verschiedenen Funktionen. Jede Funktion ist angemessen groß, logisch korrekt, leicht zu warten und vermeidet Blob Muster.
 
 \section{Genauigkeit}
-\par
-In diesem Teil wird die Genauigkeit bzw. Korrektheit des Algorithmus untersucht. Dafür ist erst einmal zu klären, welches der beiden Konzepte bei dieser Problemstellung sinnvoll anwendbar ist.
 
 \par
-Da der Algorithmus zwischendurch mit Float-Werten arbeitet, kann es zu Ungenauigkeiten kommen, da nicht alle Zahlen als Float darstellbar sind. Der maximale Fehler bei 32 bit Float beträgt ungefähr xxx. Diese mögliche Ungenauigkeit wird bei der Gammakorrektur noch verstärkt (Die Ungenauigkeit hängt zudem noch von der internen Implementation der arithmetischen Operationen ab). Obwohl der Fehler immer noch sehr klein ist, kann es bei der Rundung zu Integern zu unterschiedlichen Werten kommen. Für das menschliche Auge macht es keinen Unterschied. Die Bilder sehen identisch aus, obwohl nicht alle Integerwerte in der PGM Datei übereinstimmen. Aus diesen Gründen macht es Sinn, das resultierende Bild auf Genauigkeit anstatt auf Korrektheit zu überprüfen.
+Schauen wir uns die Ungenauigkeit an, die entstanden wäre, wenn das Programm in Version 2 anstelle von pow Formel (3) verwendet hätte. Dies liegt daran, dass wir lediglich eine beschränkte Anzahl von Termen der Taylorreihe berechnen können. Dadurch werden Terme ab dem (n+1)-ten vernachlässigt, was zu Genauigkeitsverlusten führt. Zur Schätzung der Präzision ziehen wir das \text{Peano'sche Restglied} heran.
+
+\[
+o\left((x-a)^n\right)
+\]
 
 \par
-Im Folgenden werden die 2 Teile des Programms erstmal getrennt voneinander auf Genauigkeit geprüft. Beginnen wir also mit der Graustufenkodierung.
+Es zeigt sich, dass das Restglied bei einem Wert von x nahe null langsam und bei x nahe eins schneller konvergiert. Eine präzisere Beschreibung ermöglicht das Lagrange'sche Restglied, insbesondere da der Exponent ein Bruchteil des Gammas ist und wir uns auf Werte zwischen 0 und 1 konzentrieren.
 
 \par
-Um unsere Implementierung der Graustufenkodierung auf Genauigkeit zu überprüfen, verwenden wir die von Netpbm bereitgestellte Funktion “ppmtopgm” als Referenz. Dazu haben wir eine Funktion entworfen die zwei PGM Dateien als Input nimmt und die betragsmäßige Abweichung über alle Pixel berechnet. Die Grafik1 zeigt unsere Ergebnisse für verschiedene PGM Dateien unterschiedlicher Größe.
+Wir analysieren, wie sich der Kosinusterm einer als FMIN bezeichneten kleinsten durch float darstellbaren Zahl annähert. Hier sind die Ergebnisse bei festem Gamma:
 
 \par
-Diese Abweichungen können jedoch niemals mit bloßem Auge erkannt werden, wie Abbildung 4 demonstriert.
+Daraus folgt, dass die Auswirkung von Gamma linear und die von der Basis krummlinig ist. Wenn also die Basis nahe null liegt, konvergiert sie langsam, was ebenfalls zu größeren Ungenauigkeiten führt.
 
 \par
-Nun folgt die Genauigkeitsanalyse des zweiten Teils des Programms. Diese wird erneut in mehrere Teile aufgeteilt. Dafür überprüfen wir die Genauigkeit der Pow()-Funktion, die der Taylorreihe und abschließend noch die der SIMD Implementation. Als Referenz der für das Resultat nach der Gammakorrektur verwenden wir die Funktion “gammakorrekt” des Netpbm Packages. In der Grafik2 kann man nun die Abweichung unserer Implementierung von der Netpbm-Implentierung beobachten.
-
-\par
-Nun beschäftigen wir uns mit der Genauigkeit der Taylorreihe. Die Taylorreihe ist eine Approximation, die erst bei unendlich vielen Gliedern exakt wird. In unserer Implementation der Taylorreihe brechen wir die Berechnung der Taylorreihe ab, sobald das nächste Reihenglied betragsmäßig kleiner als 0.00000001 ist. Dies lässt vermuten, dass die Abweichung bei dieser Implementation größer sein wird, als beim Verwenden der Pow-Funktion. In Grafik3 ist klar zu erkennen, dass es durch die Approximation der Taylorreihe insgesamt zu einer höheren Abweichung kommt.
-
-
-\par
-Abschließend betrachten wir noch die SIMD Implementation. Es ist zu erwarten, dass es zu keinem Unterschied in der Abweichung kommt, da die gleichen Operationen auf den gleichen Variablen durchgeführt werden. Grafik4 unterstreicht diese Hypothese.
-
-\par
-Das Resultat wird in einer Datei des PGM-Formats gespeichert. Logischerweise wählen wir PGM als Format für unsere Outputdatei, da es Graustufenbilder speichert. Jeder Pixelwert liegt zwischen 0 und dem maximalen Grauwert. wobei 0 normalerweise Schwarz darstellt, der maximale Grauwert Weiß. Alle Werte dazwischen ergeben die verschiedenen Grautöne. Der maximale Grauwert ist üblicherweise 255 (8 Bits). Bei der Konvertierung ist noch zu beachten, wie die "Gewichte" von RGB gewählt werden.
+Ergänzend sind folgende Punkte zu beachten:
+\begin{enumerate}
+\item Die Wahrscheinlichkeit liegt bei einem sehr geringen Wert von 0,01.
+\item Unter der Annahme einer mittleren Gamma-Verteilung führt eine kleine Basis und ein großes Gamma zu besseren Ergebnissen.
+\item Der Fehler wird hierdurch minimiert.
+\end{enumerate}
 
 \section{Performanzanalyse}
 
