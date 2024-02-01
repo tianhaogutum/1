@@ -14,67 +14,17 @@
 % Diese Zeile bitte -nicht- aendern.
 \title{Gruppe \theGroup{} -- Abgabe zu Aufgabe \theNumber}
 
-% document content
 \begin{document}
 \maketitle
 
-% einleitung content
 \section{Einleitung}
-\par
-Im Rahmen dieser Projektaufgabe befassen wir uns mit der Herausforderung, einen Algorithmus in der Programmiersprache C zu entwerfen, der ein farbliches Bild in ein Graustufenbild transformiert und im Anschluss die Helligkeit des Graustufenbilds anpasst. Der Algorithmus lässt sich also in zwei distinkte Phasen unterteilen.
 
 \par
-Die erste Phase ist die Graustufenkodierung. In diesem Teil wird als Input eine PPM Datei erwartet. Diese besteht aus einem Header mit Metadaten, worauf die Pixel-Informationen folgen. Im Datenteil der PPM Datei gibt es für jeden Pixel genau drei Werte, die jeweils die Stärke der Farben Rot, Grün und Blau speichern. Je größer der Wert desto stärker ist die Farbe in einem bestimmten Pixel vertreten (Siehe siehe Abb.1)
-
-% \par
-% \includegraphics[width=\textwidth]{Bilder/ppm1.png}
+Das Ziel dieser Projektarbeit ist es, einen Algorithmus in C zu entwickeln, der ein farbiges Bild in ein Graustufenbild umwandelt und anschließend die Helligkeit des Graustufenbilds mithilfe der Gammakorrektur anpasst.
 
 \par
-Im ersten Teil des Algorithmus wird nun diese PPM Datei in eine Bilddatei im PGM Format verwandelt. Eine PGM Datei besitzt ebenfalls einen Header mit Metadaten und darauf folgende Informationen über die Pixel. Da eine PGM Datei nur Graustufen darstellt, wird pro Pixel jeweils nur ein Integer-Wert gespeichert.(siehe Abb2)
+Als Eingabe akzeptiert Unser Programm nur PPM-Dateien des Typs P6. P6 bezieht sich dabei auf das Binärformat der Pixeldaten.  Diese besteht aus einem Header mit Metadaten, worauf die Pixel-Informationen folgen. Im Datenteil der PPM Datei gibt es für jeden Pixel genau drei Werte, die jeweils die Stärke der Farben Rot, Grün und Blau speichern. Je größer der Wert desto stärker ist die Farbe in einem bestimmten Pixel vertreten. Unterhalb ist ein einfaches Beispiel eines solchen Bildes.
 
-% \par
-% includegraphics[width=\textwidth]{Bilder/pgm1.png}
-
-\par
-Für die Verwandlung von einem Farbbild (PPM) in ein Graustufenbild (PGM) werden jeweils die 3 Werte pro Farbpixel zu einem Graupixel-Wert zusammengefasst. Diese Transformation ist im Grunde ein gewichteter Durchschnitt, der durch die folgende Formel berechnet wird:
-
-\begin{center}
-${D(x,y)=\frac{a*R+b*G+c*B}{a+b+c}}$
-\end{center}
-
-\par
-Kommen wir nun zur zweiten Phase des Algorithmus: Die Anpassung der Helligkeit. Dies passiert durch die sogenannte Gammakorrektur. Um diese besser verstehen zu können, betrachten wir erstmal eine simple Grafik (Abb3):
-
-% \par
-% \includegraphics[width=\textwidth]{Bilder/gammakorrektur.png}
-
-\par
-Das mittlere Bild ist das originale Bild. Wie man leicht erkennen kann, ist nach der Gammakorrektur das rechte Bild dunkler und das linke Bild heller. Die Auswirkung der Gammakorrektur hängt also von der Wahl des y Parameters (auch Gammawert genannt) ab.
-
-\par
-Bei diesem Algorithmus wird die Gammakorrektur durch folgende mathematische Formel bestimmt:
-
-\begin{center}
-${D'(x,y)={\left( \frac{D(x,y)}{255} \right)}^{\gamma}*255}$
-\end{center}
-
-\par
-Die Werte D'(x,y) ergeben die Intensität der Graustufenkodierung für alle Pixel (x,y). Bei einem Gammawert kleiner 1, ist D'(x,y) stets kleiner als D(x,y) und das Bild wird heller. Bei einem Gammawert größer 1, ist D'(x,y) stets größer ist als D(x,y) und das Bild wird dunkler.
-
-\par
-Eine weitere Herausforderung dieses Projekt war es diese Gammakorrektur-Formel ohne das Verwenden der Power-Funktion aus der Math Lib zu implementieren. Dafür wurde eine Algorithmus entworfen der nur mit grundlegenden, arithmetischen Operqationen und der Hilfe der Taylorreihe den Wert der Gammakorrektur approximentiert. 
-
-
-
-% solution content
-\section{Lösungsansatz}
-\par
-Unser Programm betrachtet aus der Perspektive einer Black Box, nimmt ein Bild im 24bpp PPM-Format entgegen und gibt dieses Bild nach einer Graustufen Konvertierung und Gamma-Korrektur aus, wobei es im PGM-Format gespeichert wird. PGM (Portable Graymap Format) und PPM (Portable Pixmap Format) sind Teil des Netpbm-Bildformats. PPM ist ein einfaches Dateiformat für Farbbitmapbilder. 24bpp (Bits pro Pixel) bedeutet, dass jedes Pixel mit 24 Bits repräsentiert wird, 8 Bits für jede Farbe (nämlich Rot R, Grün G, Blau B). 
-
-\par
-Unser Programm akzeptiert nur P6-Typ PPM-Eingaben. P6 bezieht sich auf das Binärformat, das im Gegensatz zum ASCII-basierten P3-Typ kompakter und schneller in der Lese-/Schreibgeschwindigkeit ist.Unten ist ein einfaches Beispiel, das dem folgenden Bild entspricht(P6 PPM).
-
-% graph 
 \begin{figure}[h]
 \begin{minipage}{0.45\textwidth}
 \centering
@@ -89,30 +39,29 @@ Unser Programm akzeptiert nur P6-Typ PPM-Eingaben. P6 bezieht sich auf das Binä
 \end{minipage}
 \end{figure}
 
-
 \par
-Wir verwenden eine Formel für die Graustufen Konvertierung, um einen gewichteten Durchschnittswert der R-, G- und B-Werte jedes Pixels zu ermitteln und diesen in der PGM zu speichern.Wir wählen PGM, weil es Graustufenbilder speichert. Jeder Pixelwert liegt zwischen 0 und dem maximalen Grauwert, wobei 0 normalerweise Schwarz darstellt, der maximale Grauwert Weiß und die Zwischenwerte verschiedene Grautöne. Der maximale Grauwert ist üblicherweise 255 (8 Bits).Hier muss aber beachtet werden, wie die "Gewichte" von RGB gewählt werden. 
+Die erste Phase des Projekts ist die Graustufenkodierung.Dafür verwenden wir die Formel (1) unten. Dabei wird der gewichtete Durchschnitt der Rot-, Grün- und Blau-Werte jedes Pixels ermittelt. Ein Beispiel ist in Abbildung 3 zu sehen. 
+\begin{equation}
+D(x,y)=\frac{a*R+b*G+c*B}{a+b+c}
+\end{equation}
 
-\par
-Aufgrund der Eigenschaften des menschlichen visuellen Systems (HVS), wie Empfindlichkeit gegenüber verschiedenen Farben und Helligkeiten, könnten diese die optimalen Werte der Parameter beeinflussen. Beispielsweise ist das menschliche Auge empfindlicher für Grün als für Rot und Blau, so dass bei der Umwandlung von Farbbildern in Graustufenbilder das Gewicht der grünen Komponente größer sein könnte als das der roten und blauen Komponenten.Wir setzen die Standardwerte von a, b, c wie folgt fest:a=0.2126 b=0.7152 c=0.0722 . Dann mitteln wir die RGB-Werte gewichtet.Das Graustufenbild von Bild (a), das durch Anwendung der Standardwerte a,b,c erhalten wird, sieht wie folgt aus:
 
-% graph
 \begin{figure}[h]
-    \centering
-    \includegraphics[width=0.5\textwidth]{Bilder/gamma1.pgm.png}
-    \caption{Graustufen Konvertierung von Abbildung2}
-    \end{figure}
+\centering
+\includegraphics[width=0.2\textwidth]{Bilder/gamma1.pgm.png}
+\caption{Graustufen Konvertierung von Abbildung2}
+\end{figure}
 
 \par
-Wir haben die Aufgabe grundsätzlich abgeschlossen, aber um die menschliche Sicht anzupassen, führen wir eine Gammakorrektur durch. Gammakorrektur ist eine Technik zur Anpassung der Helligkeit oder des Kontrastes von Bildern oder Videos. Ihr Zweck besteht darin, dass das Bild im menschlichen Sehsystem natürlicher wirkt. Der Gammawert ist der Parameter, der diese Korrektur steuert. Es ist eine positive Zahl, die normalerweise zwischen 1,0 und 2,2 liegt.
-\par
-Unser Programm ist jedoch in der Lage, alle Gammawerte größer als 0 zu empfangen.Also je höher der Gammawert, desto höher der Kontrast des Bildes und desto größer die Unterschiede zwischen hellen und dunklen Bereichen. Umgekehrt ist der Kontrast des Bildes bei einem niedrigeren Gammawert geringer und die Unterschiede zwischen hellen und dunklen Bereichen sind geringer. Wir wenden die folgende Formel für jeden Graustufenwert an, wobei Gamma auf 1 gesetzt wird, wenn der Benutzer es nicht angibt:
-% gamma fomular
+Im zweiten Teil der Aufgabe befassen wir uns nun mit einem anderen Aspekt des menschlichen visuellen Systems (HVS) und zwar der Helligkeit. Diese hat einen großen Einfluss darauf, wie natürlich ein Bild auf uns Menschen wirkt. Die Gammakorrektur ändert die Helligkeit bzw. den Kontrast eines Bildes, und hängt von der Wahl des $ \gamma $ Parameters ab.Bei diesem Algorithmus wird die Gammakorrektur durch folgende mathematische Formel (2) bestimmt. Die Werte D'(x,y) ergeben die Intensität der Graustufenkodierung für alle Pixel (x,y). Ein kleinerer Gammawert führt zu einem helleren Bild, während ein größerer Gammawert zu einem dunkleren Bild führt.
+
+\begin{equation}
+D'(x,y)={\left( \frac{D(x,y)}{255} \right)}^{\gamma}*255
+\end{equation}
 
 \par
-Unten stehen drei Vergleiche für die Graustufenbild Abbildung3: Gammawert auf 0.1 eingestellt, ohne Gammakorrektur, Gamma-Wert auf 10 eingestellt.
-% three graph
-% graph
+Um den Effekt der Gammakorrektur zu visualisieren, betrachten wir nochmal die Abb.3. Unterhalb kann man 3 verschiedene „Helligkeits-Versionen“ von Abb.3 vergleichen.
+
 \begin{figure}[h]
 \begin{minipage}{0.3\textwidth}
 \centering
@@ -133,8 +82,83 @@ Unten stehen drei Vergleiche für die Graustufenbild Abbildung3: Gammawert auf 0
 \end{minipage}
 \end{figure}
 
+\par
+Die Hauptfunktion unsere Programms erhält 6 Parameter. Zwei davon sind \texttt{input\_file\_name} und \texttt{output\_file\_name}, welche die Pfade des Eingabebildes und des Ausgabebildes repräsentieren. Der Parameter \texttt{version} vom Datentyp \texttt{int} gibt die Version an. Der Parameter \texttt{benchmark\_number} repräsentiert die Anzahl der Benchmark-Zyklen. Die Parameter \texttt{a}, \texttt{b}, und \texttt{c} vom Datentyp \texttt{float} stellen die RGB-Gewichte für die Graustufenumwandlung dar. Schließlich erhält die Funktion noch einen Parameter \texttt{\_gamma} vom Datentyp \texttt{float}, der für den Gammawert steht.
 
-% TODO: Je nach Aufgabenstellung einen der Begriffe wählen
+\par
+Obwohl die oben genannten Parameter zusätzlich zu den Ein- und Ausgängen standardmäßig mit sinnvollen Defaultwerten besetzt sind, kann der Nutzer diese Parameter auch selbst mit spezifischen und sinnvollen Werten ersetzen. Wenn die gesetzten Werte nicht sinnvoll sind, wird eine Fehlermeldung ausgegeben und das Programm wird beendet.Hier ist eine Übersicht an Optionen, die der Nutzer beim Aufrufen des Programms setzrn kann:
+
+\begin{itemize}
+\item Option \emph{-V<Zahl>} Die Option -V 0 ist die Standardimplementierung. -V 1 steht für die Implementierung V1 mit Taylorreihe. -V 2 steht für die Implementierung V2 mit SIMD. Andere Werte sind nicht erlaubt.
+\item Option \emph{-B<Zahl>} Falls gesetzt, wird die Laufzeit der angegebenen Implementierung gemessen und ausgegeben. Das Argument gibt die Anzahl an Wiederholungen des Funktionsaufrufs an. Es darf nicht kleiner als 1000 sein.
+\item Positionalem Argument \emph{<Dateiname>} Der Pfad zur Eingabedatei ist ein obligatorischer Parameter. Falls dieser ungültig ist, wird eine Fehlermeldung ausgegeben und das Programm wird beendet.
+\item Option \emph{-o<Dateiname>} Der Pfad zur Ausgabedatei ist ein obligatorischer Parameter. Falls dieser ungültig ist, wird eine Fehlermeldung ausgegeben und das Programm wird beendet.
+\item Option \emph{-{}-coeffs<FP Zahl>,<FP Zahl>,<FP Zahl>} Die drei Argumente müssen stets nicht-negativ sein und dürfen nicht den Wert Infinity und NaN annehmen. Ihre Summe darf auch nicht 0 betragen.
+\item Option \emph{-{}-gamma<Floating Point Zahl>} Der Gammawert kann nicht negativ sein. Wenn diese Option nicht gesetzt wird, wird standardmäßig der Wert 1 verwendet.
+\item Option \emph{-h|-{}-help} Eine Beschreibung aller Optionen des Programms und Verwendungsbeispiele werden ausgegeben und das Programm danach beendet. 
+\end{itemize}
+
+\section{Lösungsansatz}
+
+\par
+Wir betrachten nun die Implementierung des Programms. Beim Aufrufen des Programms muss der Benutzer die Eingabedatei und die Ausgabedatei angeben, sonst erhält er eine Fehlermeldung über unvollständige Parameter. Zusätzlich hat der Benutzer die Möglichkeit, beim Ausführen des Programms andere Optionen auszuwählen,Zunächst ruft die main-Funktion parse\_options(argc, argv) auf, welche die Methode GETOPT\_LONG(3) verwendet, um die Parameter von der Eingabe von dem Nutzer zu erhalten. Anschließend werden switch-case-Anweisungen zur Verarbeitung und Speicherung der jeweiligen Parameter verwendet. getopt\_long ist eine Funktion in C, die zum Parsen von Befehlszeilenparametern verwendet wird. Sie kann kurze Optionen (z.B.-o) und lange Optionen (z.B.--coeffs) verarbeiten. 
+
+\par
+Gemäß der Netpbm-Dateibeschreibung ist die ppm-Datei in zwei Teile unterteilt: Metadaten und Pixelbereich. Für die Formatierung dieser beiden Teile gibt es entsprechende Regeln. Zu beachten ist auch, dass in den Metadaten ein Kommentar an beliebiger Stelle eingefügt werden kann. Daher wird beim Lesen der Metadaten in der ppm-Datei ein Zustandsautomat entworfen und verwendet, um mit möglichen Randfällen fertig zu werden.Der Zustandsautomat für das Lesen der Metadaten in der ppm-Datei ist in den folgenden beiden Diagrammen dargestellt.Abbildung 1: Lesen von P6 in den Metadaten und Verarbeitung möglicher Kommentare. state N zeigt an, dass ein Kommentar eingegeben wurde. state N kann nur durch das Lesen eines LF oder CR verlassen werden.Abbildung 2: Dieser Zustandsautomat wird zum Lesen von width, height und maxval und zur Verarbeitung möglicher Kommentare verwendet. state N zeigt an, dass ein Kommentar eingegeben wurde. state N kann nur durch das Lesen eines LF oder CR verlassen werden.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=1\textwidth]{Bilder/auto.png}
+\caption{Zustandsautomat für das Lesen der Metadaten in der ppm-Datei}
+\end{figure}
+
+\par
+Bei der Versionsnummer kann der Benutzer zwischen 0, 1 oder 2 wählen. Bei Version 0 und 1 handelt es sich um Algorithmen mit  sequentiellen Anweisungen, Version 2 mit SIMD Instruktionen. Wenn der Nutzer keine Version angibt, wird Version 0 als default durchgeführt.
+
+\par
+Bei der Implementation von V0 und V1 werden die drei Farben jedes Pixels beim Lesen der Eingabedatei in der originalen Reihenfolge gespeichert. Wenn V2 verwendet wird, werden beim Einlesen die drei Farben jedes Pixels getrennt gespeichert. Dadurch werden drei Speicherbereiche im Heap erstellt, die jeweils für eine bestimmte Farbe alle Pixelwerte in fortlaufender Reihenfolge speichern. In main wird eine Switch-Anweisung verwendet, um verschiedene Funktionen abhängig von der gewählten Versionen aufzurufen. 
+
+\par
+In allen aufgerufenen Funktionen wird zunächst die Eingabedatei gelesen und dann basierend auf den Metadaten der Eingabedatei Speicher für die Eingabe und Ausgabe allokiert. Die Allokation des Speichers wird durch den Aufruf einer neuen Funktion implementiert. In V2, der SIMD-Implementierung, wird aligned\_alloc() verwendet, um Speicher zu reservieren (cite). Die Startadresse des Speichers wird auf ein Vielfaches von 16 ausgerichtet und erhöht damit die Geschwindigkeit des Ladens von Speicher in die xmm-Register. Anschließend werden verschiedene Versionen von gamma\_correct()aufgerufen.
+
+\par
+In V0 und V1 wird zunächst die Graustufenkonvertierung für jeden Pixel sequentiell berechnet. V2 verwendet SIMD-Anweisungen, welche es ermöglichen die Graustufenwerte von vier Pixeln gleichzeitig zu berechnen. Nachdem die Graustufenwerte der Pixel berechnet wurden, verwenden V0 und V2 die pow-Funktion der math.h-Bibliothek,um die Graustufenwerte nach der Gammakorrektur für jedes Pixel sequenziell zu berechnen. V1 verwendet keine Bibliotheksfunktionen, sondern implementiert die Taylor-Entwicklung.
+
+\par
+Die Taylor Entwicklung ist eine lokale Approximation eines Funktionswertes der Form $f(x) = f(a) + f'(a)(x-a) + \frac{{f''(a)(x-a)^2}}{2!} + \frac{{f'''(a)(x-a)^3}}{3!} + \ldots + \frac{{f^n(a)(x-a)^n}}{n!} + R_n(x) $ Wir verwenden den Fall $a=1$ und erhalten die Formel:
+
+\begin{equation}
+f(x) = 1 + \frac{(x-1)^1}{1!} (\gamma) + \frac{(x-1)^2}{2!} (\gamma)(\gamma-1)  + \cdots + \frac{(x-1)^n}{n!} \prod_{i=0}^{n-1} (\gamma-i) + R_n(x)
+\end{equation}
+
+\par
+Bei Gamma-Werten größer als der magischen Zahl 67075968 ist das Ergebnis für einen anderen Basiswert als 1 immer 0 (Unterlauf). Daher wird darauf geachtet, dass die nachfolgenden Gammawerte kleiner als diese magische Zahl sind. Im Falle eines Basiswerts von 1 wird dies als Sonderfall behandelt, und das Ergebnis bleibt unabhängig vom Gamma-Wert immer 1.
+
+\par
+Eine Beobachtung für Formel (1) ist, dass unser Base D(x,y) ist immer eine Zahl zwischen 0 und 1 ist. Gamma ist auf die Bedingung beschränkt, dass es größer als 0 und nicht Infinity oder NaN ist. Bei der Entwicklung haben wir festgestellt, dass die Fakultäten von Gamma bei größeren Gammawerten leicht zu einem Overflow führt, denn wie müssen die Fakultät von Gamma berechnen.Nachdem wir den Fall behandelt haben, dass Gamma zu groß ist, haben wir Gamma in eine ganze Zahl und eine Dezimalzahl zerlegt und separat berechnet,um immer noch mögliche Overflows zu vermeiden.
+
+\par
+Für Den Ganzzahlanteil ist unser Design Gedanke, den Exponenten in eine binäre Zahl umzuwandeln und dann zu zerlegen. Im folgenden Beispiel wird die 29. Potenz von 0,79 berechnet
+
+\[
+29 = 1 \cdot 2^0 + 0 \cdot 2^1 + 1 \cdot 2^2 + 1 \cdot 2^3 + 1 \cdot 2^4
+\]
+\[
+0.79^{29} = 0.79^{2^0} \cdot 0.79^{2^2} \cdot 0.79^{2^3} \cdot 0.79^{2^4}
+\]
+
+\par
+Da Gamma eine Fließkommazahl ist, ist der Ganzzahlanteil maximal 67075968, also zwischen $2^{25}$ und $2^{26}$, so dass wir unabhängig vom Exponenten höchstens 26 Schleifen benötigen.
+
+\par
+!!!!Die Graustufenwerte nach der Gammakorrektur werden über einen weiteren Funktionsaufruf in die Ausgabedatei geschrieben. Bevor alle Ressourcen freigegeben werden, wird gamma\_correct() wiederholt ausgeführt, wenn der Benutzer die Option \-B in den Optionen aktiviert hat. Die Zeit wird zu Beginn und am Ende des Zyklus aufgezeichnet. Diese Laufzeit des Zyklus wird später für die Leistungsanalyse verwendet.
+
+\par
+!!!!Am Ende der main\-Funktion müssen alle Ressourcen freigegeben werden. Um Speicherlecks zu vermeiden, verwenden wir die free\-Funktion und fclose, um den Speicherbereich freizugeben. Zusätzlich wird an sämtlichen Stellen in main\-Funktion, an denen eine Allocation oder eine IO\-Operation durchgeführt wird, überprüft, ob sie erfolgreich war. Wenn der entsprechende Vorgang fehlschlägt, werden alle Ressourcen des aktuellen Programms freigegeben und eine Fehlermeldung in stderr ausgegeben. Danach wird das Programm mit dem Status EXIT\_FAILURE beendet.
+
+\par
+Das Programm verteilt alle Funktionen sinnvoll auf die verschiedenen Funktionen. Jede Funktion ist angemessen groß, logisch korrekt, leicht zu warten und vermeidet Blob Muster.
+
 \section{Genauigkeit}
 \par
 In diesem Teil wird die Genauigkeit bzw. Korrektheit des Algorithmus untersucht. Dafür ist erst einmal zu klären, welches der beiden Konzepte bei dieser Problemstellung sinnvoll anwendbar ist.
@@ -160,6 +184,9 @@ Nun beschäftigen wir uns mit der Genauigkeit der Taylorreihe. Die Taylorreihe i
 
 \par
 Abschließend betrachten wir noch die SIMD Implementation. Es ist zu erwarten, dass es zu keinem Unterschied in der Abweichung kommt, da die gleichen Operationen auf den gleichen Variablen durchgeführt werden. Grafik4 unterstreicht diese Hypothese.
+
+\par
+Das Resultat wird in einer Datei des PGM-Formats gespeichert. Logischerweise wählen wir PGM als Format für unsere Outputdatei, da es Graustufenbilder speichert. Jeder Pixelwert liegt zwischen 0 und dem maximalen Grauwert. wobei 0 normalerweise Schwarz darstellt, der maximale Grauwert Weiß. Alle Werte dazwischen ergeben die verschiedenen Grautöne. Der maximale Grauwert ist üblicherweise 255 (8 Bits). Bei der Konvertierung ist noch zu beachten, wie die "Gewichte" von RGB gewählt werden.
 
 \section{Performanzanalyse}
 
