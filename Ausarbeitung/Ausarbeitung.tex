@@ -184,19 +184,34 @@ Es zeigt sich, dass das Restglied bei einem Wert von x nahe null langsam und bei
 Wir werden dies im Folgenden unter zwei Gesichtspunkten analysieren: Zum einen soll untersucht werden, wie viele Konvergenzterme erforderlich sind, um sich dem minimalen Wert von float zu nähern, und zum anderen soll untersucht werden, welche Kombinationen von Gamma und x zu Fehlern führen, die größer als 1/255 und welche kleiner als 1/255 sind. Der Fehler des endgültigen gamma-korrigierten Ergebnisses beträgt höchstens 1, wenn der Fehler weniger als 1/255 beträgt.
 
 \par
-Beginnen wir mit der ersten Perspektive, bei der wir gamma bzw. x fixieren und die Auswirkungen einer Änderung einer anderen Variablen auf die Anzahl der Iterationen untersuchen. Die Schlussfolgerung ist unten dargestellt.
+Beginnen wir mit der ersten Perspektive, bei der wir gamma bzw. x fixieren und die Auswirkungen einer Änderung einer anderen Variablen auf die Anzahl der Iterationen untersuchen. Die Schlussfolgerung ist in Abb.8 und Abb.9 dargestellt.
 
+
+\begin{figure}[h]
+\centering
+\begin{minipage}{0.48\textwidth}
+\centering
+\includegraphics[width=0.8\linewidth]{Bilder/xchange.jpg}
+\caption{Anzahl der erforderlichen Iterationen für verschiedene x, wenn gamma auf 0,5 festgelegt ist}
+\label{fig:xchange}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+\centering
+\includegraphics[width=0.8\linewidth]{Bilder/Gammachange.jpg}
+\caption{Für verschiedene Gamma, wenn x auf 0,9 festgelegt ist}
+\label{fig:gammachange}
+\end{minipage}
+\end{figure}
+
+    
 \par
 Daraus folgt, dass die Auswirkung von Gamma linear und die von der Basis krummlinig ist. Wenn also die Basis nahe null liegt, konvergiert sie langsam, was ebenfalls zu größeren Ungenauigkeiten führt.
 
 \par
-todo by tianhao
+Anschließend wird die Auswirkung der Änderung von (Gamma,x) auf den Fehler weiter untersucht. Hier verwenden wir den Referenzstandard netpbm/v0. Die Schlussfolgerung ist in Abb.10 dargestellt.(todo by zhongfang)
 
 \par
-Anschließend wird die Auswirkung der Änderung von (Gamma,x) auf den Fehler weiter untersucht. Hier verwenden wir den Referenzstandard netpbm/v0
-
-\par
-todo by zhongfang
+Die Ergebnisse der Ausführung unseres Programms bestätigen auch die Schlussfolgerungen der mathematischen Berechnungen, d.h. der Wert von Gamma hat einen geringen Einfluss auf den Fehler, während x sehr nahe bei 0 zu einem großen Fehler führt.
 
 \par
 Aber wirkt sich das sehr negativ auf unsere Ergebnisse aus?In Anwendungen tatsächlich nicht wirklich schlimm.Begründen ist wie folgt:
