@@ -23,7 +23,7 @@
 Das Ziel dieser Projektarbeit ist es, einen Algorithmus in C zu entwickeln, der ein farbiges Bild in ein Graustufenbild umwandelt und anschließend die Helligkeit des Graustufenbilds mithilfe der Gammakorrektur anpasst.
 
 \par
-Als Eingabe akzeptiert Unser Programm nur PPM-Dateien des Typs P6. P6 bezieht sich dabei auf das Binärformat der Pixeldaten.  Diese besteht aus einem Header mit Metadaten, worauf die Pixel-Informationen folgen. Im Datenteil der PPM Datei gibt es für jeden Pixel genau drei Werte, die jeweils die Stärke der Farben Rot, Grün und Blau speichern. Je größer der Wert desto stärker ist die Farbe in einem bestimmten Pixel vertreten. Unterhalb ist ein einfaches Beispiel eines solchen Bildes.
+Als Eingabe akzeptiert Unser Programm nur PPM-Dateien\cite{netpbm} des Typs P6. P6 bezieht sich dabei auf das Binärformat der Pixeldaten.  Diese besteht aus einem Header mit Metadaten, worauf die Pixel-Informationen folgen. Im Datenteil der PPM Datei gibt es für jeden Pixel genau drei Werte, die jeweils die Stärke der Farben Rot, Grün und Blau speichern. Je größer der Wert desto stärker ist die Farbe in einem bestimmten Pixel vertreten. Unterhalb ist ein einfaches Beispiel eines solchen Bildes.
 
 \begin{figure}[h]
 \begin{minipage}{0.45\textwidth}
@@ -40,7 +40,7 @@ Als Eingabe akzeptiert Unser Programm nur PPM-Dateien des Typs P6. P6 bezieht si
 \end{figure}
 
 \par
-Die erste Phase des Projekts ist die Graustufenkodierung.Dafür verwenden wir die Formel (1) unten. Dabei wird der gewichtete Durchschnitt der Rot-, Grün- und Blau-Werte jedes Pixels ermittelt. Ein Beispiel ist in Abbildung 3 zu sehen. 
+Die erste Phase des Projekts ist die Graustufenkodierung\cite{wikipedia2024grayscale}.Dafür verwenden wir die Formel (1) unten. Dabei wird der gewichtete Durchschnitt der Rot-, Grün- und Blau-Werte jedes Pixels ermittelt. Ein Beispiel ist in Abbildung 3 zu sehen. 
 \begin{equation}
 D(x,y)=\frac{a*R+b*G+c*B}{a+b+c}
 \end{equation}
@@ -53,7 +53,7 @@ D(x,y)=\frac{a*R+b*G+c*B}{a+b+c}
 \end{figure}
 
 \par
-Im zweiten Teil der Aufgabe befassen wir uns nun mit einem anderen Aspekt des menschlichen visuellen Systems (HVS) und zwar der Helligkeit. Diese hat einen großen Einfluss darauf, wie natürlich ein Bild auf uns Menschen wirkt. Die Gammakorrektur ändert die Helligkeit bzw. den Kontrast eines Bildes, und hängt von der Wahl des $ \gamma $ Parameters ab.Bei diesem Algorithmus wird die Gammakorrektur durch folgende mathematische Formel (2) bestimmt. Die Werte D'(x,y) ergeben die Intensität der Graustufenkodierung für alle Pixel (x,y). Ein kleinerer Gammawert führt zu einem helleren Bild, während ein größerer Gammawert zu einem dunkleren Bild führt.
+Im zweiten Teil der Aufgabe befassen wir uns nun mit einem anderen Aspekt des menschlichen visuellen Systems (HVS) und zwar der Helligkeit\cite{wikipedia2023gammakorrektur}. Diese hat einen großen Einfluss darauf, wie natürlich ein Bild auf uns Menschen wirkt. Die Gammakorrektur ändert die Helligkeit bzw. den Kontrast eines Bildes, und hängt von der Wahl des $ \gamma $ Parameters ab.Bei diesem Algorithmus wird die Gammakorrektur durch folgende mathematische Formel (2) bestimmt. Die Werte D'(x,y) ergeben die Intensität der Graustufenkodierung für alle Pixel (x,y). Ein kleinerer Gammawert führt zu einem helleren Bild, während ein größerer Gammawert zu einem dunkleren Bild führt.
 
 \begin{equation}
 D'(x,y)={\left( \frac{D(x,y)}{255} \right)}^{\gamma}*255
@@ -101,10 +101,13 @@ Obwohl die oben genannten Parameter zusätzlich zu den Ein- und Ausgängen stand
 \section{Lösungsansatz}
 
 \par
-Wir betrachten nun die Implementierung des Programms. Beim Aufrufen des Programms muss der Benutzer die Eingabedatei und die Ausgabedatei angeben, sonst erhält er eine Fehlermeldung über unvollständige Parameter. Zusätzlich hat der Benutzer die Möglichkeit, beim Ausführen des Programms andere Optionen auszuwählen,Zunächst ruft die main-Funktion parse\_options(argc, argv) auf, welche die Methode GETOPT\_LONG(3) verwendet, um die Parameter von der Eingabe von dem Nutzer zu erhalten. Anschließend werden switch-case-Anweisungen zur Verarbeitung und Speicherung der jeweiligen Parameter verwendet. getopt\_long ist eine Funktion in C, die zum Parsen von Befehlszeilenparametern verwendet wird. Sie kann kurze Optionen (z.B.-o) und lange Optionen (z.B.--coeffs) verarbeiten. 
+Es wird nun die Implementierung des Programms betrachtet. Zu Beginn erhält das Programm die Optionen und ihre Argumente von der Eingabe des Nutzers durch die Methode \texttt{getopt\_long}\cite{getoptlong3}. Nach erfolgreichem Einlesen der Eingabe wird die Funktion \texttt{check\_values} aufgerufen, um zu überprüfen, ob alle Argumente für das Programm legal sind. Bei illegalen Argumenten wird das Programm mit einer Fehlermeldung beendet.
 
 \par
-Gemäß der Netpbm-Dateibeschreibung ist die ppm-Datei in zwei Teile unterteilt: Metadaten und Pixelbereich. Für die Formatierung dieser beiden Teile gibt es entsprechende Regeln. Zu beachten ist auch, dass in den Metadaten ein Kommentar an beliebiger Stelle eingefügt werden kann. Daher wird beim Lesen der Metadaten in der ppm-Datei ein Zustandsautomat entworfen und verwendet, um mit möglichen Randfällen fertig zu werden.Der Zustandsautomat für das Lesen der Metadaten in der ppm-Datei ist in den folgenden beiden Diagrammen dargestellt.Abbildung 1: Lesen von P6 in den Metadaten und Verarbeitung möglicher Kommentare. state N zeigt an, dass ein Kommentar eingegeben wurde. state N kann nur durch das Lesen eines LF oder CR verlassen werden.Abbildung 2: Dieser Zustandsautomat wird zum Lesen von width, height und maxval und zur Verarbeitung möglicher Kommentare verwendet. state N zeigt an, dass ein Kommentar eingegeben wurde. state N kann nur durch das Lesen eines LF oder CR verlassen werden.
+Die Versionsnummer der Implementierung kann entweder 0, 1 oder 2 sein. Bei den Versionen 0 und 1 werden lediglich sequenzielle Anweisungen verwendet. Version 2 wiederum verwendet SIMD-Instruktionen zur Berechnung der Graustufenkonvertierung.
+
+\par
+In allen aufgerufenen Funktionen wird zunächst die Eingabedatei gelesen. Gemäß der Netpbm-Dateibeschreibung ist die ppm-Datei in zwei Teile unterteilt: Metadaten und Pixelbereich. Es wird darauf geachtet, dass in den Metadaten ein Kommentar an beliebiger Stelle eingefügt werden kann. Daher wird beim Lesen der Metadaten in der ppm-Datei ein Zustandsautomat entworfen, um alle möglichen Randfälle abzufangen und zu behandeln. Die Automate wird gezeigt in Abbildung 7.
 
 \begin{figure}[h]
 \centering
@@ -113,29 +116,28 @@ Gemäß der Netpbm-Dateibeschreibung ist die ppm-Datei in zwei Teile unterteilt:
 \end{figure}
 
 \par
-Bei der Versionsnummer kann der Benutzer zwischen 0, 1 oder 2 wählen. Bei Version 0 und 1 handelt es sich um Algorithmen mit  sequentiellen Anweisungen, Version 2 mit SIMD Instruktionen. Wenn der Nutzer keine Version angibt, wird Version 0 als default durchgeführt.
+Der Speicher für die Eingabedaten und Ausgabedaten wird basierend auf den Metadaten der Eingabedatei allokiert.Bei der Implementierung von V0 und V1 werden die drei Farben jedes Pixels beim Lesen der Eingabedatei in der originalen Reihenfolge gespeichert. Wenn V2 verwendet wird, werden beim Einlesen die drei Farben jedes Pixels getrennt gespeichert. Dadurch werden drei Speicherbereiche im Heap erstellt, die jeweils für eine bestimmte Farbe alle Pixel-Werte in fortlaufender Reihenfolge speichern. In der \texttt{main}-Funktion wird eine Switch-Anweisung verwendet, um verschiedene Funktionen gemäß der gewählten Versionen aufzurufen.
 
 \par
-Bei der Implementation von V0 und V1 werden die drei Farben jedes Pixels beim Lesen der Eingabedatei in der originalen Reihenfolge gespeichert. Wenn V2 verwendet wird, werden beim Einlesen die drei Farben jedes Pixels getrennt gespeichert. Dadurch werden drei Speicherbereiche im Heap erstellt, die jeweils für eine bestimmte Farbe alle Pixelwerte in fortlaufender Reihenfolge speichern. In main wird eine Switch-Anweisung verwendet, um verschiedene Funktionen abhängig von der gewählten Versionen aufzurufen. 
+In V2, der SIMD-Implementierung, wird \texttt{aligned\_alloc}\cite{man2022aligned_alloc} verwendet, um Speicher zu reservieren. Die Startadresse des Speichers wird auf ein Vielfaches von 16 ausgerichtet und erhöht damit die Geschwindigkeit des Ladens und Zurückschreibens von und aus dem Speicher in die xmm-Register. Anschließend wird die ausgewählte Version von gamma\_correct aufgerufen. In V0 und V1 wird die Graustufenkonvertierung für jeden Pixel sequentiell berechnet. V2 verwendet SIMD-Anweisungen, welche es ermöglichen die Graustufenwerte von vier Pixeln gleichzeitig zu berechnen. Hier noch eine Bemerkung: Wir setzen die Standardwerte von a, b, c wie folgt fest: a=0.299 b=0.587 c=0.114. Diese Gewichtungen werden häufig verwendet\cite{wikipedia2024grayscale}, weil sie in der Praxis gute Ergebnisse liefern und das menschliche Auge die Luminanzeigenschaften der Farben recht gut widerspiegeln. Nachdem die Graustufenwerte der Pixel berechnet wurden, verwenden V0 und V2 die \texttt{pow}-Funktion der \texttt{math.h} Bibliothek, um die Graustufenwerte nach der Gammakorrektur für jedes Pixel sequentiell zu berechnen. V1 verwendet keine Bibliotheksfunktionen.Als Nächstes sehen wir uns an, wie V1 grundlegende mathematische Verfahren zur Umsetzung von pow Funktion durch die Taylor-Entwicklung.
 
 \par
-In allen aufgerufenen Funktionen wird zunächst die Eingabedatei gelesen und dann basierend auf den Metadaten der Eingabedatei Speicher für die Eingabe und Ausgabe allokiert. Die Allokation des Speichers wird durch den Aufruf einer neuen Funktion implementiert. In V2, der SIMD-Implementierung, wird aligned\_alloc() verwendet, um Speicher zu reservieren (cite). Die Startadresse des Speichers wird auf ein Vielfaches von 16 ausgerichtet und erhöht damit die Geschwindigkeit des Ladens von Speicher in die xmm-Register. Anschließend werden verschiedene Versionen von gamma\_correct()aufgerufen.
-
-\par
-In V0 und V1 wird zunächst die Graustufenkonvertierung für jeden Pixel sequentiell berechnet. V2 verwendet SIMD-Anweisungen, welche es ermöglichen die Graustufenwerte von vier Pixeln gleichzeitig zu berechnen. Nachdem die Graustufenwerte der Pixel berechnet wurden, verwenden V0 und V2 die pow-Funktion der math.h-Bibliothek,um die Graustufenwerte nach der Gammakorrektur für jedes Pixel sequenziell zu berechnen. V1 verwendet keine Bibliotheksfunktionen, sondern implementiert die Taylor-Entwicklung.
-
-\par
-Die Taylor Entwicklung ist eine lokale Approximation eines Funktionswertes der Form $f(x) = f(a) + f'(a)(x-a) + \frac{{f''(a)(x-a)^2}}{2!} + \frac{{f'''(a)(x-a)^3}}{3!} + \ldots + \frac{{f^n(a)(x-a)^n}}{n!} + R_n(x) $ Wir verwenden den Fall $a=1$ und erhalten die Formel:
+Die Taylor Entwicklung\cite{mathworld2024taylorseries} ist eine lokale Approximation eines Funktionswertes der Form $f(x) = f(a) + f'(a)(x-a) + \frac{{f''(a)(x-a)^2}}{2!} + \frac{{f'''(a)(x-a)^3}}{3!} + \ldots + \frac{{f^n(a)(x-a)^n}}{n!} + R_n(x) $ Wir verwenden den Fall $a=1$ und erhalten die folgende Formel:
 
 \begin{equation}
 f(x) = 1 + \frac{(x-1)^1}{1!} (\gamma) + \frac{(x-1)^2}{2!} (\gamma)(\gamma-1)  + \cdots + \frac{(x-1)^n}{n!} \prod_{i=0}^{n-1} (\gamma-i) + R_n(x)
 \end{equation}
 
 \par
-Bei Gamma-Werten größer als der magischen Zahl 67075968 ist das Ergebnis für einen anderen Basiswert als 1 immer 0 (Unterlauf). Daher wird darauf geachtet, dass die nachfolgenden Gammawerte kleiner als diese magische Zahl sind. Im Falle eines Basiswerts von 1 wird dies als Sonderfall behandelt, und das Ergebnis bleibt unabhängig vom Gamma-Wert immer 1.
+Betrachten wir zunächst die drei Grenzfälle:
+\begin{enumerate}
+\item Wenn die Basis kleiner oder gleich \(0.5\) ist und Gamma größer oder gleich \(150\) ist, ist das Ergebnis immer \(0\) (\textbf{Underflow} für \texttt{float}).
+\item Wenn die Basis \(1.0\) beträgt, ist das Ergebnis immer \(1\).
+\item Wenn Gamma größer ist als die magische Zahl \(67075968\), ist das Ergebnis \(0\), wenn die Basis kleiner als \(1\) ist (wieder \textbf{Underflow}).
+\end{enumerate}
 
 \par
-Eine Beobachtung für Formel (1) ist, dass unser Base D(x,y) ist immer eine Zahl zwischen 0 und 1 ist. Gamma ist auf die Bedingung beschränkt, dass es größer als 0 und nicht Infinity oder NaN ist. Bei der Entwicklung haben wir festgestellt, dass die Fakultäten von Gamma bei größeren Gammawerten leicht zu einem Overflow führt, denn wie müssen die Fakultät von Gamma berechnen.Nachdem wir den Fall behandelt haben, dass Gamma zu groß ist, haben wir Gamma in eine ganze Zahl und eine Dezimalzahl zerlegt und separat berechnet,um immer noch mögliche Overflows zu vermeiden.
+Eine Beobachtung für Formel (2) ist, dass der Base \(D(x,y)/255\) immer eine Zahl zwischen 0 und 1 ist. \emph{Gamma} ist auf die Bedingung beschränkt, dass es größer als 0 und nicht \emph{Infinity} oder \emph{NaN} ist. Bei der Entwicklung haben wir festgestellt, dass die Berechnung von \(\prod_{i=0}^{n-1} (\gamma-i)\) bei größeren Gammawerten leicht zu einem \textbf{Overflow} führt. Um das Problem zu lösen, zerlegt V2 \emph{Gamma} in eine ganze Zahl und eine Dezimalzahl und berechnet diese separat.
 
 \par
 Für Den Ganzzahlanteil ist unser Design Gedanke, den Exponenten in eine binäre Zahl umzuwandeln und dann zu zerlegen. Im folgenden Beispiel wird die 29. Potenz von 0,79 berechnet
@@ -148,13 +150,16 @@ Für Den Ganzzahlanteil ist unser Design Gedanke, den Exponenten in eine binäre
 \]
 
 \par
-Da Gamma eine Fließkommazahl ist, ist der Ganzzahlanteil maximal 67075968, also zwischen $2^{25}$ und $2^{26}$, so dass wir unabhängig vom Exponenten höchstens 26 Schleifen benötigen.
+Da Gamma kleiner als 67075968, also zwischen $2^{25}$ und $2^{26}$, so dass wir unabhängig vom Exponenten höchstens 26 Schleifen benötigen.
 
 \par
-!!!!Die Graustufenwerte nach der Gammakorrektur werden über einen weiteren Funktionsaufruf in die Ausgabedatei geschrieben. Bevor alle Ressourcen freigegeben werden, wird gamma\_correct() wiederholt ausgeführt, wenn der Benutzer die Option \-B in den Optionen aktiviert hat. Die Zeit wird zu Beginn und am Ende des Zyklus aufgezeichnet. Diese Laufzeit des Zyklus wird später für die Leistungsanalyse verwendet.
+Danach verwenden wir Formel (3) für den Bruchteil, und die Akkumulation endet, wenn der Expansionsterm klein genug ist. Hier ist zu beachten, dass wir das Ergebnis des i-ten Expansionsterms zur Berechnung des (i+1)-ten Expansionsterms verwenden können.
 
 \par
-!!!!Am Ende der main\-Funktion müssen alle Ressourcen freigegeben werden. Um Speicherlecks zu vermeiden, verwenden wir die free\-Funktion und fclose, um den Speicherbereich freizugeben. Zusätzlich wird an sämtlichen Stellen in main\-Funktion, an denen eine Allocation oder eine IO\-Operation durchgeführt wird, überprüft, ob sie erfolgreich war. Wenn der entsprechende Vorgang fehlschlägt, werden alle Ressourcen des aktuellen Programms freigegeben und eine Fehlermeldung in stderr ausgegeben. Danach wird das Programm mit dem Status EXIT\_FAILURE beendet.
+Die Graustufenwerte nach der Gammakorrektur werden über einen weiteren Funktionsaufruf im Format von PGM in die Ausgabedatei geschrieben. PGM (Portable Gray Map) Format\cite{netpbm} wird zur Speicherung von Graustufenbildern verwendet, weil es ein einfaches, leicht umsetzbares Bildformat ist. Im Vergleich zu anderen komplexen Bilddateiformaten ist das PGM-Format sehr einfach. Es speichert die Pixelwerte des Bildes und kann leicht in Textform bearbeitet und gelesen werden. Dieses Format erfordert keine komplizierten Dekodierer oder zusätzliche Datenkompression, was es ideal für die schnelle Speicherung und Verarbeitung von Graustufenbilddaten macht. Bevor alle Ressourcen freigegeben werden, wird \texttt{gamma\_correct()} wiederholt ausgeführt, wenn der Benutzer die Option \texttt{-B} in den Optionen aktiviert hat. Die Zeit wird zu Beginn und am Ende des Zyklus aufgezeichnet. Diese Laufzeit des Zyklus wird später für die Leistungsanalyse verwendet.
+
+\par
+Am Ende des Programms müssen alle Ressourcen freigegeben werden. Zusätzlich wird an sämtlichen Stellen im Programm, an denen eine Allocation oder eine IO-Operation durchgeführt wird, überprüft, ob sie erfolgreich war.
 
 \par
 Das Programm verteilt alle Funktionen sinnvoll auf die verschiedenen Funktionen. Jede Funktion ist angemessen groß, logisch korrekt, leicht zu warten und vermeidet Blob Muster.
@@ -162,27 +167,28 @@ Das Programm verteilt alle Funktionen sinnvoll auf die verschiedenen Funktionen.
 \section{Genauigkeit}
 
 \par
-Schauen wir uns die Ungenauigkeit an, die entstanden wäre, wenn das Programm in Version 2 anstelle von pow Formel (3) verwendet hätte. Dies liegt daran, dass wir lediglich eine beschränkte Anzahl von Termen der Taylorreihe berechnen können. Dadurch werden Terme ab dem (n+1)-ten vernachlässigt, was zu Genauigkeitsverlusten führt. Zur Schätzung der Präzision ziehen wir das \text{Peano'sche Restglied} heran.
+Schauen wir uns die Ungenauigkeit an, die entstanden wäre, wenn das Programm in Version 2 anstelle von pow Formel (3) verwendet hätte. Dies liegt daran, dass wir lediglich eine beschränkte Anzahl von Termen der Taylorreihe berechnen können. Dadurch werden Terme ab dem (n+1)-ten vernachlässigt, was zu Genauigkeitsverlusten führt. Zur Schätzung der Präzision ziehen wir das \text{Peano'sche Restglied}\cite{mathematiknet2009taylorpolynome} heran.
 
 \[
 o\left((x-a)^n\right)
 \]
 
 \par
-Es zeigt sich, dass das Restglied bei einem Wert von x nahe null langsam und bei x nahe eins schneller konvergiert. Eine präzisere Beschreibung ermöglicht das Lagrange'sche Restglied, insbesondere da der Exponent ein Bruchteil des Gammas ist und wir uns auf Werte zwischen 0 und 1 konzentrieren.
+Es zeigt sich, dass das Restglied bei einem Wert von x nahe null langsam und bei x nahe eins schneller konvergiert. Eine präzisere Beschreibung ermöglicht das Lagrange'sche Restglied\cite{biancahoegel2021taylorformel}, insbesondere da der Exponent ein Bruchteil des Gammas ist und wir uns auf Werte zwischen 0 und 1 konzentrieren. Wir setzen einen Anpassungspunkt von 1 ein und vereinfachen die Lagrangesche Gleichung wie folgt:
+\[
+\frac{{\prod_{i=0}^{n} (\gamma - i) \cdot (x-1)^{n+1}}}{{(n+1)!}} \label{eq:gamma_product}
+\]
 
-\par
-Wir analysieren, wie sich der Kosinusterm einer als FMIN bezeichneten kleinsten durch float darstellbaren Zahl annähert. Hier sind die Ergebnisse bei festem Gamma:
 
 \par
 Daraus folgt, dass die Auswirkung von Gamma linear und die von der Basis krummlinig ist. Wenn also die Basis nahe null liegt, konvergiert sie langsam, was ebenfalls zu größeren Ungenauigkeiten führt.
 
 \par
-Ergänzend sind folgende Punkte zu beachten:
+Aber ungenaue Ergebnisse aufgrund von kleinen Basen sind in Anwendungen nicht wirklich schlimm.Begründen ist wie folgt:
 \begin{enumerate}
-\item Die Wahrscheinlichkeit liegt bei einem sehr geringen Wert von 0,01.
-\item Unter der Annahme einer mittleren Gamma-Verteilung führt eine kleine Basis und ein großes Gamma zu besseren Ergebnissen.
-\item Der Fehler wird hierdurch minimiert.
+\item Die Wahrscheinlichkeit ist sehr gering, wenn die Basis kleiner als 0,0001 ist.
+\item Wenn die Basis klein und gleichzeitig Gamma groß ist, wird dies bereits als Grenzfall berücksichtigt.
+\item Wenn das Gamma einen ganzzahligen Teil enthält, ist das Ergebnis des ganzzahligen Teils kleiner als 1, weil die Basis kleiner als 1 ist. Der absolute Fehler aus dem gebrochenen Teil der Berechnung wird reduziert, wenn wir das Ergebnis mit dem ganzzahligen Teil multiplizieren.
 \end{enumerate}
 
 \section{Performanzanalyse}
@@ -190,7 +196,7 @@ Ergänzend sind folgende Punkte zu beachten:
 
 \section{Zusammenfassung und Ausblick}
 \par
-Bei\cite{vmintromiami} diesem Projekt ging es darum, eine Graustufen-Kodierung und Gammakorrektur selber zu programmieren. Das Umsetzen der Graustufen-Kodierung war relativ einfach, genau wie die Implementierung mit der Pow-Funktion. Die Aufgabe erhielt eine neue Stufe an Komplexität, sobald es zur Implementierung mit der Taylorreihe und der SIMD Implementierung kommt. Die Taylorreihe führt zu einer geringeren Genauigkeit. Die SIMD-Funktion hat zu einer höhere Performanz von etwa … Prozent geführt. Abschließend kann man sagen, dass dieses Projekt einen interessanten Einblick in verschiedene Bildformate, das Approximieren mit Hilfe der Taylorreihe und das Optimieren mit Hilfe von SIMD-Intrinsics geliefert hat.
+Bei diesem Projekt ging es darum, eine Graustufen-Kodierung und Gammakorrektur selber zu programmieren. Das Umsetzen der Graustufen-Kodierung war relativ einfach, genau wie die Implementierung mit der Pow-Funktion. Die Aufgabe erhielt eine neue Stufe an Komplexität, sobald es zur Implementierung mit der Taylorreihe und der SIMD Implementierung kommt. Die Taylorreihe führt zu einer geringeren Genauigkeit. Die SIMD-Funktion hat zu einer höhere Performanz von etwa … Prozent geführt. Abschließend kann man sagen, dass dieses Projekt einen interessanten Einblick in verschiedene Bildformate, das Approximieren mit Hilfe der Taylorreihe und das Optimieren mit Hilfe von SIMD-Intrinsics geliefert hat.
 
 % TODO: Fuegen Sie Ihre Quellen der Datei Ausarbeitung.bib hinzu
 % Referenzieren Sie diese dann mit \cite{}.
