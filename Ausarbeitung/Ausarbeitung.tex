@@ -260,6 +260,8 @@ Bei der Analyse des Speicherbedarfs verwenden wir das Tool “Valgrind”. Dabei
 \par
 Für alle 3 Implementierungen kann man einen linearen Zusammenhang zwischen Bildgröße und Speichernutzung beobachten. V0 und V1 haben jeweils sehr ähnliche Resultate geliefert, weshalb sie in der Grafik zusammengefasst wurden. Beide Implementationen haben ungefähr eine Speichernutzung von 3,7 KB pro 1000 Pixel. Die Implementierung V2 verbraucht mit 16 KB pro 1000 Pixel im Vergleich deutlich mehr Speicher.
 
+\par
+Diese Unterschiede in der Speichernutzung stimmen mit unseren theoretischen Überlegeungen überein. Beim Laden des PPM-Bildes für die SIMD Version werden die "uint_8" Werte der Pixel als "float" Werte gespeichert. Dadurch kommt es zu einer 4x größeren Speicherallokation. Zusätzlich wird bei Version 2 ein Zwischenergebnis für die Pixel als float Werte gespeichert. Daher sollte der Speicherbedarf insgesamt um den Faktor 4.25 größer sein. 
 
 \section{Zusammenfassung und Ausblick}
 
