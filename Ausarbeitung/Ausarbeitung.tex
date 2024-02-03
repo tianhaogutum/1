@@ -54,7 +54,7 @@ D(x,y)=\frac{a*R+b*G+c*B}{a+b+c}
 \end{figure}
 
 \par
-Im zweiten Teil der Aufgabe befassen wir uns nun mit einem anderen Aspekt des menschlichen visuellen Systems (HVS) und zwar der Helligkeit \cite{westin2011gammacorrection}. Diese hat einen großen Einfluss darauf, wie natürlich ein Bild auf uns Menschen wirkt. Die Gammakorrektur ändert die Helligkeit bzw. den Kontrast eines Bildes, und hängt von der Wahl des $ \gamma $ Parameters ab. Bei diesem Algorithmus wird die Gammakorrektur durch folgende mathematische Formel (2) bestimmt. Die Werte D'(x,y) ergeben die Intensität der Graustufenkodierung für alle Pixel (x,y). Ein kleinerer Gammawert führt zu einem helleren Bild, während ein größerer Gammawert zu einem dunkleren Bild führt. Bei Gamma gleich 1 ist die Gammakorrektur entsprechend linear, der übliche Gamma-Wert liegt bei 2,2, und bei Gamma 3 ist das Bild sehr dunkel.\cite{cambridgeincolor2020gammacorrection}
+Im zweiten Teil der Aufgabe befassen wir uns nun mit einem anderen Aspekt des menschlichen visuellen Systems (HVS) und zwar der Helligkeit \cite{westin2011gammacorrection}. Diese hat einen großen Einfluss darauf, wie natürlich ein Bild auf uns Menschen wirkt. Die Gammakorrektur ändert die Helligkeit bzw. den Kontrast eines Bildes, und hängt von der Wahl des $ \gamma $ Parameters ab. Bei diesem Algorithmus wird die Gammakorrektur durch folgende mathematische Formel (2) bestimmt. Die Werte D'(x,y) ergeben die Intensität der Graustufenkodierung für alle Pixel (x,y). Ein kleinerer Gammawert führt zu einem helleren Bild, während ein größerer Gammawert zu einem dunkleren Bild führt. Bei $\gamma$ = 1 ist die Gammakorrektur entsprechend linear, der übliche Gamma-Wert liegt bei 2,2, und bei Gam$\gamma$ma = 3 ist das Bild sehr dunkel.\cite{cambridgeincolor2020gammacorrection}
 
 \begin{equation}
 D'(x,y)={\left( \frac{D(x,y)}{255} \right)}^{\gamma}*255
@@ -67,19 +67,19 @@ Um den Effekt der Gammakorrektur zu visualisieren, betrachten wir nochmal die Ab
 \begin{minipage}{0.3\textwidth}
 \centering
 \includegraphics[width=\textwidth]{Bilder/gamma0.1.pgm.png}
-\caption{Gamma=0.1}
+\caption{$\gamma$=0.1}
 \end{minipage}
 \hfill
 \begin{minipage}{0.3\textwidth}
 \centering
 \includegraphics[width=\textwidth]{Bilder/gamma1.pgm.png}
-\caption{Gamma=1}
+\caption{$\gamma$=1}
 \end{minipage}
 \hfill
 \begin{minipage}{0.3\textwidth}
 \centering
 \includegraphics[width=\textwidth]{Bilder/gamma10.pgm.png}
-\caption{Gamma=10}
+\caption{$\gamma$=10}
 \end{minipage}
 \end{figure}
 
@@ -133,13 +133,13 @@ f(x) = 1 + \frac{(x-1)^1}{1!} (\gamma) + \frac{(x-1)^2}{2!} (\gamma)(\gamma-1)  
 \par
 Betrachten wir zunächst drei mögliche Grenzfälle:
 \begin{enumerate}
-\item Wenn die Basis kleiner oder gleich \(0.5\) ist und Gamma größer oder gleich \(150\) ist, ist das Ergebnis immer \(0\) (\textbf{Underflow} für \texttt{float}).
+\item Wenn die Basis kleiner oder gleich \(0.5\) ist und $\gamma$ größer oder gleich \(150\) ist, ist das Ergebnis immer \(0\) (\textbf{Underflow} für \texttt{float}).
 \item Wenn die Basis \(1.0\) beträgt, ist das Ergebnis immer \(1\).
-\item Wenn Gamma größer ist als die magische Zahl \(75464577\),  ist das Zwischenergebnis kleiner als 0,5 und muss nach dem Runden des endgültigen PGM 0 sein für alle positive Basis kleiner als 1.
+\item Wenn $\gamma$ größer ist als die magische Zahl \(75464577\),  ist das Zwischenergebnis kleiner als 0,5 und muss nach dem Runden des endgültigen PGM 0 sein für alle positive Basis kleiner als 1.
 \end{enumerate}
 
 \par
-Eine weitere logische Schlussfolgerung für Formel (2) ist, dass die Basis \(D(x,y)/255\) immer eine Zahl zwischen 0 und 1 ist.(255 ist maxValue) \emph{Gamma} ist laut Angabe so zu wählen, dass es größer als 0 und nicht \emph{Infinity} oder \emph{NaN} ist. Bei der Entwicklung haben wir festgestellt, dass die Berechnung von \(\prod_{i=0}^{n-1} (\gamma-i)\) bei größeren Gammawerten leicht zu einem \textbf{Overflow} führt. Um dieses Problem zu lösen, zerlegt V2 \emph{Gamma} in eine ganze Zahl und eine Dezimalzahl und berechnet diese separat.
+Eine weitere logische Schlussfolgerung für Formel (2) ist, dass die Basis \(D(x,y)/255\) immer eine Zahl zwischen 0 und 1 ist.(255 ist maxValue) \emph{$\Gamma$} ist laut Angabe so zu wählen, dass es größer als 0 und nicht \emph{Infinity} oder \emph{NaN} ist. Bei der Entwicklung haben wir festgestellt, dass die Berechnung von \(\prod_{i=0}^{n-1} (\gamma-i)\) bei größeren Gammawerten leicht zu einem \textbf{Overflow} führt. Um dieses Problem zu lösen, zerlegt V2 \emph{Gamma} in eine ganze Zahl und eine Dezimalzahl und berechnet diese separat.
 
 \par
 Für den Ganzzahlanteil ist unser Design Gedanke, den Exponenten in eine binäre Zahl umzuwandeln und dann zu zerlegen. Im folgenden Beispiel wird die 29. Potenz von 0,79 berechnet
@@ -152,7 +152,7 @@ Für den Ganzzahlanteil ist unser Design Gedanke, den Exponenten in eine binäre
 \]
 
 \par
-Da Gamma kleiner als 67075968 ist, also zwischen $2^{25}$ und $2^{26}$ liegt, benötigen wir unabhängig vom Exponenten höchstens 26 Schleifen.
+Da $\gamma$ kleiner als 67075968 ist, also zwischen $2^{25}$ und $2^{26}$ liegt, benötigen wir unabhängig vom Exponenten höchstens 26 Schleifen.
 
 \par
 Danach verwenden wir Formel (3) für den Dezimal-Anteil, und die Akkumulation endet, wenn der Expansionsterm klein genug ist. Hier ist zu beachten, dass wir das Ergebnis des i-ten Expansionsterms zur Berechnung des (i+1)-ten Expansionsterms verwenden können.
@@ -168,12 +168,8 @@ Das Programm verteilt alle Funktionen sinnvoll auf die verschiedenen Funktionen.
 
 \section{Genauigkeit}
 
-
 \par
-In diesem Teil der Ausarbeitung beschäftigen wir uns mit der Genauigkeit unserer Implementierung.
-
-\par
-Um die Genauigkei des gesamten Verfahrens zu studieren, untersuchen wir die Graustufenkonvertierung und die Gammakorrektur separat. Im Schritt der Graustufenkonvertierung werden wir den Unterschied zwischen den Ergebnissen von v0 und der offiziellen netpbm-Funktion ppmtopgm untersuchen, und im Schritt der Gamma-Korrektur analysieren wir sie unter dem Gesichtspunkt der mathematischen Konvergenz, bzw. unter dem Gesichtspunkt des realen Fehlers des Programmlaufs.
+In diesem Teil der Ausarbeitung beschäftigen wir uns mit der Genauigkeit unserer Implementierung.Um die Genauigkei des gesamten Verfahrens zu studieren, untersuchen wir die Graustufenkonvertierung und die Gammakorrektur separat. Im Schritt der Graustufenkonvertierung werden wir den Unterschied zwischen den Ergebnissen von v0 und der offiziellen netpbm-Funktion ppmtopgm untersuchen, und im Schritt der Gamma-Korrektur analysieren wir sie unter dem Gesichtspunkt der mathematischen Konvergenz, bzw. unter dem Gesichtspunkt des realen Fehlers des Programmlaufs. Im Folgenden bezieht sich Basis auf $\frac{D(x, y)}{255}$.
 
 \par
 Die analytischen Ergebnisse der Graustufenumrechnung lauten wie folgt.
@@ -185,41 +181,41 @@ pic by zhongfang
 Schauen wir uns die Ungenauigkeit bei Gammakorrektur von dem mathematischen Perspektive an, die entstanden wäre, wenn das Programm in Version 2 anstelle von pow in stadard lib die Formel (3) verwendet hätte. Dies liegt daran, dass wir lediglich eine beschränkte Anzahl von Termen der Taylorreihe berechnen können. Dadurch werden Terme ab dem (n+1)-ten vernachlässigt, was zu Genauigkeitsverlusten führt. Zur Schätzung der Präzision ziehen wir das \text{Peano'sche Restglied}\cite{mathematiknet2009taylorpolynome} heran.
 
 \[
-o\left((x-1)^n\right)
+o\left((Basis-1)^n\right)
 \]
 
 \par
-Es zeigt sich, dass das Restglied bei einem Wert von x nahe null langsam und bei x nahe eins schneller konvergiert. Eine präzisere Beschreibung ermöglicht das Lagrange'sche Restglied\cite{biancahoegel2021taylorformel}, insbesondere da der Exponent ein Bruchteil des Gammas ist und wir uns auf Werte zwischen 0 und 1 konzentrieren. Wir setzen einen Anpassungspunkt von 1 ein und vereinfachen die Lagrangesche Restglied wie folgt:
+Es zeigt sich, dass das Restglied bei einem Wert von Basis nahe null schneller konvergiert. Eine präzisere Beschreibung ermöglicht das Lagrange'sche Restglied\cite{biancahoegel2021taylorformel}, insbesondere da der Exponent ein Bruchteil des $\gamma$ ist und wir uns auf Werte zwischen 0 und 1 konzentrieren. Wir setzen einen Anpassungspunkt von 1 ein und vereinfachen die Lagrangesche Restglied wie folgt:
 
 \[
 \frac{{\prod_{i=0}^{n} (\gamma - i) \cdot (x-1)^{n+1}}}{{(n+1)!}} \label{eq:gamma_product}
 \]
 
 \par
-Wir haben zunächst das Gamma oder x fixiert und die Auswirkungen der Änderung der anderen Variablen auf die Anzahl der Iterationen analysiert. Die Ergebnisse wurden mit der Software Wolframalpha berechnet. Die Schlussfolgerungen sind in den Abbildungen 8 und 9 dargestellt.
+Wir haben zunächst das $\gamma$ oder Basis fixiert und die Auswirkungen der Änderung der anderen Variablen auf die Anzahl der Iterationen analysiert. Die Ergebnisse wurden mit der Software Wolframalpha berechnet. Die Schlussfolgerungen sind in den Abbildungen 8 und 9 dargestellt.
 
 \begin{figure}[h]
 \centering
 \begin{minipage}{0.48\textwidth}
 \centering
 \includegraphics[width=0.8\linewidth]{Bilder/KonvergenzBasis.png}
-\caption{Anzahl der erforderlichen Iterationen für verschiedene x, wenn gamma auf 0,5 festgelegt ist}
+\caption{Anzahl der erforderlichen Iterationen für verschiedene x, wenn $\gamma$ auf 0,5 festgelegt ist}
 \label{fig:xchange}
 \end{minipage}\hfill
 \begin{minipage}{0.48\textwidth}
 \centering
 \includegraphics[width=0.8\linewidth]{Bilder/KonvergenzGamma.png}
-\caption{Für verschiedene Gamma, wenn x auf 0,9 festgelegt ist}
+\caption{Für verschiedene $\Gamma$, wenn x auf 0,9 festgelegt ist}
 \label{fig:gammachange}
 \end{minipage}
 \end{figure}
 
     
 \par
-Daraus folgt, dass die Auswirkung von Gamma linear und die von der Basis krummlinig ist. Wir haben festgestellt, dass bei x=0,0001 mehr als 300.000 Iterationen erforderlich sind. Wenn also die Basis nahe bei Null liegt, wird die Konvergenz langsam sein, was auch zu einem Anstieg des Fehlers führt.
+Daraus folgt, dass die Auswirkung von $\gamma$ linear und die von der Basis krummlinig ist. Wir haben festgestellt, dass bei Basis=0,0001 sogar mehr als 300.000 Iterationen erforderlich sind. Wenn also die Basis nahe bei Null liegt, wird die Konvergenz langsam sein, was auch zu einem Anstieg des Fehlers führt.
 
 \par
-Wir haben eben die GenauigkeitBerechnungen vom mathematischen Standpunkt aus geschätzt, und im Folgenden sehen wir, ob das Programm ebenfalls dieser Schlussfolgerung folgt. Das folgende Bild zeigt den Unterschied zwischen den Ergebnissen der verschiedenen (gamma,x)-Berechnungen und der pow-Funktion von math.h. Die Schlussfolgerung ist in Abbildung 10 dargestellt. Die Ergebnisse der Ausführung unseres Programms bestätigen auch die Schlussfolgerungen der mathematischen Berechnungen, d.h. der Wert von Gamma hat einen geringen Einfluss auf den Fehler, während x sehr nahe bei 0 zu einem großen Fehler führt.
+Wir haben eben die GenauigkeitBerechnungen vom mathematischen Standpunkt aus geschätzt, und im Folgenden sehen wir, ob das Programm ebenfalls dieser Schlussfolgerung folgt. Das folgende Bild zeigt den Unterschied zwischen den Ergebnissen der verschiedenen ($\gamma$,Basis)-Berechnungen und der pow-Funktion von math.h. Die Schlussfolgerung ist in Abbildung 10 dargestellt. Die Ergebnisse der Ausführung unseres Programms bestätigen auch die Schlussfolgerungen der mathematischen Berechnungen, d.h. der Wert von $\gamma$ hat einen geringen Einfluss auf den Fehler, während Basis sehr nahe bei 0 zu einem großen Fehler führt.
 
 \par
 pic by zhongfang
@@ -231,10 +227,10 @@ Als Nächstes vergleichen wir den Gamma-Korrekturschritt - wir haben 255 möglic
 pic by zhongfang
 
 \par
-Aber wirkt sich das sehr negativ auf unsere Ergebnisse aus?In Anwendungen tatsächlich nicht wirklich schlimm.Begründen ist wie folgt:
+Aber wirkt sich das sehr negativ auf unsere Ergebnisse aus? In Anwendungen tatsächlich nicht wirklich schlimm.Begründen ist wie folgt:
 \begin{enumerate}
 \item Die Wahrscheinlichkeit ist sehr gering, wenn die Basis kleiner als 0,0001 ist.
-\item Wenn die Basis klein und gleichzeitig Gamma groß ist, wird dies bereits als Grenzfall berücksichtigt.
+\item Wenn die Basis klein und gleichzeitig $\gamma$ groß ist, wird dies bereits als Grenzfall berücksichtigt.
 \item Wenn das Gamma einen ganzzahligen Teil enthält, ist das Ergebnis des ganzzahligen Teils kleiner als 1, weil die Basis kleiner als 1 ist. Der absolute Fehler aus dem gebrochenen Teil der Berechnung wird reduziert, wenn wir das Ergebnis mit dem ganzzahligen Teil multiplizieren.
 \end{enumerate}
 
