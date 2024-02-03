@@ -1,4 +1,4 @@
-% Diese Zeile bitte -nicht- aendern.\pgfplotsset{compat=1.15}
+% Diese Zeile bitte -nicht- aendern.
 \documentclass[course=erap]{aspdoc}
 \graphicspath{ {./} }
 
@@ -18,6 +18,7 @@
 \maketitle
 
 \section{Einleitung}
+
 
 \par
 Das Ziel dieser Projektarbeit ist es, einen Algorithmus in C zu entwickeln, der ein farbiges Bild in ein Graustufenbild umwandelt und anschließend die Helligkeit des Graustufenbilds mithilfe der Gammakorrektur anpasst.
@@ -40,7 +41,7 @@ Als Eingabe akzeptiert unser Programm nur PPM-Dateien \cite{netpbm} des Typs P6.
 \end{figure}
 
 \par
-Die erste Phase des Projekts ist die Graustufenkodierung \cite{wikipedia2024grayscale}. Dafür verwenden wir die Formel (1) unten. Dabei wird der gewichtete Durchschnitt der Rot-, Grün- und Blau-Werte jedes Pixels ermittelt. Ein Beispiel der Graustufenkodierung ist in Abbildung 3 zu sehen. 
+Die erste Phase des Projekts ist die Graustufenkodierung. Dafür verwenden wir die Formel (1) unten. Dabei wird der gewichtete Durchschnitt der Rot-, Grün- und Blau-Werte jedes Pixels ermittelt. Ein Beispiel der Graustufenkodierung ist in Abbildung 3 zu sehen. 
 \begin{equation}
 D(x,y)=\frac{a*R+b*G+c*B}{a+b+c}
 \end{equation}
@@ -53,7 +54,7 @@ D(x,y)=\frac{a*R+b*G+c*B}{a+b+c}
 \end{figure}
 
 \par
-Im zweiten Teil der Aufgabe befassen wir uns nun mit einem anderen Aspekt des menschlichen visuellen Systems (HVS) und zwar der Helligkeit \cite{wikipedia2023gammakorrektur}. Diese hat einen großen Einfluss darauf, wie natürlich ein Bild auf uns Menschen wirkt. Die Gammakorrektur ändert die Helligkeit bzw. den Kontrast eines Bildes, und hängt von der Wahl des $ \gamma $ Parameters ab. Bei diesem Algorithmus wird die Gammakorrektur durch folgende mathematische Formel (2) bestimmt. Die Werte D'(x,y) ergeben die Intensität der Graustufenkodierung für alle Pixel (x,y). Ein kleinerer Gammawert führt zu einem helleren Bild, während ein größerer Gammawert zu einem dunkleren Bild führt.
+Im zweiten Teil der Aufgabe befassen wir uns nun mit einem anderen Aspekt des menschlichen visuellen Systems (HVS) und zwar der Helligkeit \cite{westin2011gammacorrection}. Diese hat einen großen Einfluss darauf, wie natürlich ein Bild auf uns Menschen wirkt. Die Gammakorrektur ändert die Helligkeit bzw. den Kontrast eines Bildes, und hängt von der Wahl des $ \gamma $ Parameters ab. Bei diesem Algorithmus wird die Gammakorrektur durch folgende mathematische Formel (2) bestimmt. Die Werte D'(x,y) ergeben die Intensität der Graustufenkodierung für alle Pixel (x,y). Ein kleinerer Gammawert führt zu einem helleren Bild, während ein größerer Gammawert zu einem dunkleren Bild führt. Bei Gamma gleich 1 ist die Gammakorrektur entsprechend linear, der übliche Gamma-Wert liegt bei 2,2, und bei Gamma 3 ist das Bild sehr dunkel.\cite{cambridgeincolor2020gammacorrection}
 
 \begin{equation}
 D'(x,y)={\left( \frac{D(x,y)}{255} \right)}^{\gamma}*255
@@ -107,19 +108,20 @@ Nun wird die Implementierung des Programms betrachtet. Zu Beginn erhält das Pro
 Die Versionsnummer der Implementierung kann entweder 0, 1 oder 2 sein. Bei den Versionen 0 und 1 werden lediglich sequenzielle Anweisungen verwendet. Version 2 wiederum verwendet SIMD-Instruktionen zur Berechnung der Graustufenkonvertierung.
 
 \par
-In allen aufgerufenen Funktionen wird zunächst die Eingabedatei gelesen. Gemäß der Netpbm-Dateibeschreibung ist die ppm-Datei in zwei Teile unterteilt: Metadaten und Pixelbereich. Es wird darauf geachtet, dass in den Metadaten ein Kommentar an beliebiger Stelle eingefügt werden kann. Daher wird beim Lesen der Metadaten in der ppm-Datei ein Zustandsautomat entworfen, um alle möglichen Randfälle abzufangen und zu behandeln. Der Automat wird in Abbildung 7 gezeigt.
+In allen aufgerufenen Funktionen wird zunächst die Eingabedatei gelesen. Gemäß der Netpbm-Dateibeschreibung ist die ppm-Datei in zwei Teile unterteilt: Metadaten und Pixelbereich. Es wird darauf geachtet, dass in den Metadaten ein Kommentar an beliebiger Stelle eingefügt werden kann. Daher wird beim Lesen der Metadaten in der ppm-Datei ein Zustandsautomat entworfen, um alle möglichen Randfälle abzufangen und zu behandeln. Abb. 7 zeigt, dass der ppm-Leser P6 in den Metadaten liest und mögliche Kommentare verarbeitet. Der Zustand N in der Abbildung zeigt an, dass ein Kommentar eingegeben wurde. Der Zustand N kann nur durch Lesen eines LF oder CR verlassen werden.Der in Abb. 8 dargestellte Zustandsautomat wird zum Lesen von width, height und maxval und zur Behandlung möglicher Kommentare verwendet. state N in der Abbildung zeigt an, dass ein Kommentar eingegeben wurde. state N kann nur durch das Lesen eines LF oder CR verlassen werden.
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=1\textwidth]{Bilder/auto.png}
-\caption{Zustandsautomat für das Lesen der Metadaten in der ppm-Datei}
+    \centering
+    \includegraphics[width=0.5\textwidth]{Bilder/auto1.png}
+    \caption{Erste Zustandsautomat}
+    \includegraphics[width=0.5\textwidth]{Bilder/auto2.png} 
+    \caption{Zweite Zustandsautomat} 
 \end{figure}
-
 \par
 Der Speicher für die Eingabedaten und Ausgabedaten wird basierend auf den Metadaten der Eingabedatei allokiert. Bei der Implementierung von V0 und V1 werden die drei Farben jedes Pixels beim Lesen der Eingabedatei in der originalen Reihenfolge gespeichert. Bei der Implementierung von V2 werden beim Einlesen die drei Farben jedes Pixels getrennt gespeichert. Dadurch werden drei Speicherbereiche im Heap erstellt, die jeweils für eine bestimmte Farbe alle Pixel-Werte in fortlaufender Reihenfolge speichern. In der \texttt{main}-Funktion wird eine Switch-Anweisung verwendet, um verschiedene Funktionen gemäß der gewählten Versionen aufzurufen.
 
 \par
-In V2, der SIMD-Implementierung, wird \texttt{aligned\_alloc}\cite{man2022aligned_alloc} verwendet, um Speicher zu reservieren. Die Startadresse des Speichers wird auf ein Vielfaches von 16 ausgerichtet und erhöht damit die Geschwindigkeit des Ladens und Zurückschreibens von und aus dem Speicher in die xmm-Register. Anschließend wird die ausgewählte Version von gamma\_correct aufgerufen. In V0 und V1 wird die Graustufenkonvertierung für jeden Pixel sequentiell berechnet. V2 verwendet SIMD-Anweisungen, welche es ermöglichen die Graustufenwerte von vier Pixeln gleichzeitig zu berechnen. Hier noch eine Bemerkung: Wir setzen die Standardwerte von a, b, c wie folgt fest: a=0.299 b=0.587 c=0.114. Diese Gewichtungen werden häufig verwendet\cite{wikipedia2024grayscale}, da sie in der Praxis gute Ergebnisse liefern und die Luminanzeigenschaften der Farben natürlich für das menschliche Auge wirken. Nachdem die Graustufenwerte der Pixel berechnet wurden, verwenden V0 und V2 die \texttt{pow}-Funktion der \texttt{math.h} Bibliothek, um die Graustufenwerte nach der Gammakorrektur für jedes Pixel sequentiell zu berechnen. V1 verwendet keine Bibliotheksfunktionen. Im nächsten Teil werden wir sehen, wie V1 grundlegende mathematische Operationen verwendet um die pow Funktion durch die Taylor-Entwicklung zu approximieren.
+In V2, der SIMD-Implementierung, wird \texttt{aligned\_alloc}\cite{man2022aligned_alloc} verwendet, um Speicher zu reservieren. Die Startadresse des Speichers wird auf ein Vielfaches von 16 ausgerichtet und erhöht damit die Geschwindigkeit des Ladens und Zurückschreibens von und aus dem Speicher in die xmm-Register. Anschließend wird die ausgewählte Version von gamma\_correct aufgerufen. In V0 und V1 wird die Graustufenkonvertierung für jeden Pixel sequentiell berechnet. V2 verwendet SIMD-Anweisungen, welche es ermöglichen die Graustufenwerte von vier Pixeln gleichzeitig zu berechnen. Hier noch eine Bemerkung: Wir setzen die Standardwerte von a, b, c wie folgt fest: a= 0.299 b= 0.587 c= 0.114. Diese Gewichtungen werden häufig verwendet\cite{w3c1996sRGB}, da sie in der Praxis gute Ergebnisse liefern und die Luminanzeigenschaften der Farben natürlich für das menschliche Auge wirken. Nachdem die Graustufenwerte der Pixel berechnet wurden, verwenden V0 und V2 die \texttt{pow}-Funktion der \texttt{math.h} Bibliothek, um die Graustufenwerte nach der Gammakorrektur für jedes Pixel sequentiell zu berechnen. V1 verwendet keine Bibliotheksfunktionen. Im nächsten Teil werden wir sehen, wie V1 grundlegende mathematische Operationen verwendet um die pow Funktion durch die Taylor-Entwicklung zu approximieren.
 
 \par
 Die Taylor Entwicklung \cite{mathworld2024taylorseries} dient der lokalen Approximation eines Funktionswertes und hat die allgemeine Form $f(x) = f(a) + f'(a)(x-a) + \frac{{f''(a)(x-a)^2}}{2!} + \frac{{f'''(a)(x-a)^3}}{3!} + \ldots + \frac{{f^n(a)(x-a)^n}}{n!} + R_n(x) $ Wir verwenden den Fall $a=1$ und erhalten dann folgende Formel:
@@ -133,7 +135,7 @@ Betrachten wir zunächst drei mögliche Grenzfälle:
 \begin{enumerate}
 \item Wenn die Basis kleiner oder gleich \(0.5\) ist und Gamma größer oder gleich \(150\) ist, ist das Ergebnis immer \(0\) (\textbf{Underflow} für \texttt{float}).
 \item Wenn die Basis \(1.0\) beträgt, ist das Ergebnis immer \(1\).
-\item Wenn Gamma größer ist als die magische Zahl \(67075968\), ist das Ergebnis \(0\), wenn die Basis kleiner als \(1\) ist (wieder \textbf{Underflow}).
+\item Wenn Gamma größer ist als die magische Zahl \(75464577\),  ist das Zwischenergebnis kleiner als 0,5 und muss nach dem Runden des endgültigen PGM 0 sein für alle positive Basis kleiner als 1.
 \end{enumerate}
 
 \par
@@ -166,40 +168,47 @@ Das Programm verteilt alle Funktionen sinnvoll auf die verschiedenen Funktionen.
 
 \section{Genauigkeit}
 
+
 \par
 In diesem Teil der Ausarbeitung beschäftigen wir uns mit der Genauigkeit unserer Implementierung.
+
 \par
-Schauen wir uns die Ungenauigkeit an, die entstanden wäre, wenn das Programm in Version 2 anstelle von pow in stadard lib die Formel (3) verwendet hätte. Dies liegt daran, dass wir lediglich eine beschränkte Anzahl von Termen der Taylorreihe berechnen können. Dadurch werden Terme ab dem (n+1)-ten vernachlässigt, was zu Genauigkeitsverlusten führt. Zur Schätzung der Präzision ziehen wir das \text{Peano'sche Restglied}\cite{mathematiknet2009taylorpolynome} heran.
+Um die Genauigkei des gesamten Verfahrens zu studieren, untersuchen wir die Graustufenkonvertierung und die Gammakorrektur separat. Im Schritt der Graustufenkonvertierung werden wir den Unterschied zwischen den Ergebnissen von v0 und der offiziellen netpbm-Funktion ppmtopgm untersuchen, und im Schritt der Gamma-Korrektur analysieren wir sie unter dem Gesichtspunkt der mathematischen Konvergenz, bzw. unter dem Gesichtspunkt des realen Fehlers des Programmlaufs.
+
+\par
+Die analytischen Ergebnisse der Graustufenumrechnung lauten wie folgt.
+
+\par
+pic by zhongfang
+
+\par
+Schauen wir uns die Ungenauigkeit bei Gammakorrektur von dem mathematischen Perspektive an, die entstanden wäre, wenn das Programm in Version 2 anstelle von pow in stadard lib die Formel (3) verwendet hätte. Dies liegt daran, dass wir lediglich eine beschränkte Anzahl von Termen der Taylorreihe berechnen können. Dadurch werden Terme ab dem (n+1)-ten vernachlässigt, was zu Genauigkeitsverlusten führt. Zur Schätzung der Präzision ziehen wir das \text{Peano'sche Restglied}\cite{mathematiknet2009taylorpolynome} heran.
 
 \[
 o\left((x-1)^n\right)
 \]
 
 \par
-Es zeigt sich, dass das Restglied bei einem Wert von x nahe null langsam und bei x nahe eins schneller konvergiert. Eine präzisere Beschreibung ermöglicht das Lagrange'sche Restglied\cite{biancahoegel2021taylorformel}, insbesondere da der Exponent ein Bruchteil des Gammas ist und wir uns auf Werte zwischen 0 und 1 konzentrieren. Wir setzen einen Anpassungspunkt von 1 ein und vereinfachen die Lagrangesche Gleichung wie folgt:
+Es zeigt sich, dass das Restglied bei einem Wert von x nahe null langsam und bei x nahe eins schneller konvergiert. Eine präzisere Beschreibung ermöglicht das Lagrange'sche Restglied\cite{biancahoegel2021taylorformel}, insbesondere da der Exponent ein Bruchteil des Gammas ist und wir uns auf Werte zwischen 0 und 1 konzentrieren. Wir setzen einen Anpassungspunkt von 1 ein und vereinfachen die Lagrangesche Restglied wie folgt:
 
 \[
 \frac{{\prod_{i=0}^{n} (\gamma - i) \cdot (x-1)^{n+1}}}{{(n+1)!}} \label{eq:gamma_product}
 \]
 
 \par
-Wir werden dies im Folgenden unter zwei Gesichtspunkten analysieren: Zum einen soll untersucht werden, wie viele Konvergenzterme erforderlich sind, um sich dem minimalen Wert von float zu nähern, und zum anderen soll untersucht werden, welche Kombinationen von Gamma und x zu Fehlern führen, die größer als 1/255 und welche kleiner als 1/255 sind. Der Fehler des endgültigen gamma-korrigierten Ergebnisses beträgt höchstens 1, wenn der Fehler weniger als 1/255 beträgt.
-
-\par
-Beginnen wir mit der ersten Perspektive, bei der wir gamma bzw. x fixieren und die Auswirkungen einer Änderung einer anderen Variablen auf die Anzahl der Iterationen untersuchen. Die Ergebnisse werden mit der Software Wolframalpha berechnet. Die Schlussfolgerung ist in Abb.8 und Abb.9 dargestellt.
-
+Wir haben zunächst das Gamma oder x fixiert und die Auswirkungen der Änderung der anderen Variablen auf die Anzahl der Iterationen analysiert. Die Ergebnisse wurden mit der Software Wolframalpha berechnet. Die Schlussfolgerungen sind in den Abbildungen 8 und 9 dargestellt.
 
 \begin{figure}[h]
 \centering
 \begin{minipage}{0.48\textwidth}
 \centering
-\includegraphics[width=0.8\linewidth]{Bilder/xchange.jpg}
+\includegraphics[width=0.8\linewidth]{Bilder/KonvergenzBasis.png}
 \caption{Anzahl der erforderlichen Iterationen für verschiedene x, wenn gamma auf 0,5 festgelegt ist}
 \label{fig:xchange}
 \end{minipage}\hfill
 \begin{minipage}{0.48\textwidth}
 \centering
-\includegraphics[width=0.8\linewidth]{Bilder/Gammachange.jpg}
+\includegraphics[width=0.8\linewidth]{Bilder/KonvergenzGamma.png}
 \caption{Für verschiedene Gamma, wenn x auf 0,9 festgelegt ist}
 \label{fig:gammachange}
 \end{minipage}
@@ -207,13 +216,19 @@ Beginnen wir mit der ersten Perspektive, bei der wir gamma bzw. x fixieren und d
 
     
 \par
-Daraus folgt, dass die Auswirkung von Gamma linear und die von der Basis krummlinig ist. Wenn also die Basis nahe null liegt, konvergiert sie langsam, was ebenfalls zu größeren Ungenauigkeiten führt.
+Daraus folgt, dass die Auswirkung von Gamma linear und die von der Basis krummlinig ist. Wir haben festgestellt, dass bei x=0,0001 mehr als 300.000 Iterationen erforderlich sind. Wenn also die Basis nahe bei Null liegt, wird die Konvergenz langsam sein, was auch zu einem Anstieg des Fehlers führt.
 
 \par
-Anschließend wird die Auswirkung der Änderung von (Gamma,x) auf den Fehler weiter untersucht. Hier verwenden wir den Referenzstandard netpbm/v0. Die Schlussfolgerung ist in Abb.10 dargestellt.(todo by zhongfang)
+Wir haben eben die GenauigkeitBerechnungen vom mathematischen Standpunkt aus geschätzt, und im Folgenden sehen wir, ob das Programm ebenfalls dieser Schlussfolgerung folgt. Das folgende Bild zeigt den Unterschied zwischen den Ergebnissen der verschiedenen (gamma,x)-Berechnungen und der pow-Funktion von math.h. Die Schlussfolgerung ist in Abbildung 10 dargestellt. Die Ergebnisse der Ausführung unseres Programms bestätigen auch die Schlussfolgerungen der mathematischen Berechnungen, d.h. der Wert von Gamma hat einen geringen Einfluss auf den Fehler, während x sehr nahe bei 0 zu einem großen Fehler führt.
 
 \par
-Die Ergebnisse der Ausführung unseres Programms bestätigen auch die Schlussfolgerungen der mathematischen Berechnungen, d.h. der Wert von Gamma hat einen geringen Einfluss auf den Fehler, während x sehr nahe bei 0 zu einem großen Fehler führt.
+pic by zhongfang
+
+\par
+Als Nächstes vergleichen wir den Gamma-Korrekturschritt - wir haben 255 mögliche Pixelpunkte, für die wir die offiziellen V0-, V1- bzw. netpbm-Methoden verwenden, und die Ergebnisse sind in der Abbildung dargestellt.
+
+\par
+pic by zhongfang
 
 \par
 Aber wirkt sich das sehr negativ auf unsere Ergebnisse aus?In Anwendungen tatsächlich nicht wirklich schlimm.Begründen ist wie folgt:
@@ -222,22 +237,6 @@ Aber wirkt sich das sehr negativ auf unsere Ergebnisse aus?In Anwendungen tatsä
 \item Wenn die Basis klein und gleichzeitig Gamma groß ist, wird dies bereits als Grenzfall berücksichtigt.
 \item Wenn das Gamma einen ganzzahligen Teil enthält, ist das Ergebnis des ganzzahligen Teils kleiner als 1, weil die Basis kleiner als 1 ist. Der absolute Fehler aus dem gebrochenen Teil der Berechnung wird reduziert, wenn wir das Ergebnis mit dem ganzzahligen Teil multiplizieren.
 \end{enumerate}
-
-\section{Performanzanalyse}
-\par
-Im vorletzten Teil der Ausarbeitung untersuchen wir nun die Leistung unserer verschiedenen Implementierungen. Dabei analysieren wir bezogen auf die Laufzeit und den Speicherbedarf.
-
-\par
-Eine theoretische Laufzeitanalyse ist für keine der drei Implementierungen praktisch umsetzbar. Bei Version 0 und Version 2 wird die pow()-Funktion der Math.h - Bibliothek verwendet. Dabei handelt es sich um eine Blockbox-Funktion, deren Laufzeit wir nicht theoretisch bestimmen können. Bei Version 1 findet eine Approximation durch die Taylorreihe statt. Dabei wird die Reihe abgebrochen, sobald das neueste Reihenglied betragsmäßig kleiner als ein bestimmtes Epsilon ist. Dies hat zur Folge, dass es praktisch nicht möglich ist vorherzusagen, wie viele Glieder im Durchschnitt berechnet werden müssen, da die Größe und Entwicklung der Reihenglieder stark von Basis und Exponent abhängen.
-
-\par
-Für die praktische Analyse der Laufzeit wurden die 3 Versionen des Algorithmus auf einem Gerät mit folgender Spezifikation evaluiert:
-
-\begin{itemize}
-\item AMD Ryzen 5 3600 6-Core Processor 3.59 GHz
-\item 8.00 GB DDR4 RAM
-\item ...
-\end{itemize}
 
 \par
 In der Grafik1 sehen wir das Resultat der Laufzeitanalyse für die 3 verschiedenen Versionen bei unterschiedlichen Benchmarking-Zyklen.
@@ -261,7 +260,16 @@ Bei der Analyse des Speicherbedarfs verwenden wir das Tool “Valgrind”. Dabei
 Für alle 3 Implementierungen kann man einen linearen Zusammenhang zwischen Bildgröße und Speichernutzung beobachten. V0 und V1 haben jeweils sehr ähnliche Resultate geliefert, weshalb sie in der Grafik zusammengefasst wurden. Beide Implementationen haben ungefähr eine Speichernutzung von 3,7 KB pro 1000 Pixel. Die Implementierung V2 verbraucht mit 16 KB pro 1000 Pixel im Vergleich deutlich mehr Speicher.
 
 \par
-Diese Unterschiede in der Speichernutzung stimmen mit unseren theoretischen Überlegeungen überein. Beim Laden des PPM-Bildes für die SIMD Version werden die "uint_8" Werte der Pixel als "float" Werte gespeichert. Dadurch kommt es zu einer 4x größeren Speicherallokation. Zusätzlich wird bei Version 2 ein Zwischenergebnis für die Pixel als float Werte gespeichert. Daher sollte der Speicherbedarf insgesamt um den Faktor 4.25 größer sein. 
+Diese Unterschiede in der Speichernutzung stimmen mit unseren theoretischen Überlegeungen überein. Beim Laden des PPM-Bildes für die SIMD Version werden die "uint\_8" Werte der Pixel als "float" Werte gespeichert. Dadurch kommt es zu einer 4x größeren Speicherallokation. Zusätzlich wird bei Version 2 ein Zwischenergebnis für die Pixel als float Werte gespeichert. Daher sollte der Speicherbedarf insgesamt um den Faktor 4.25 größer sein. 
+
+
+\section{Performanzanalyse}
+
+\par
+Im vorletzten Teil der Ausarbeitung untersuchen wir nun die Leistung unserer verschiedenen Implementierungen. Dabei analysieren wir bezogen auf die Laufzeit und den Speicherbedarf.
+
+\par
+Eine theoretische Laufzeitanalyse ist für keine der drei Implementierungen praktisch umsetzbar. Bei Version 0 und Version 2 wird die pow()-Funktion der Math.h - Bibliothek verwendet. Dabei handelt es sich um eine Blockbox-Funktion, deren Laufzeit wir nicht theoretisch bestimmen können. Bei Version 1 findet eine Approximation durch die Taylorreihe statt. Dabei wird die Reihe abgebrochen, sobald das neueste Reihenglied betragsmäßig kleiner als ein bestimmtes Epsilon ist. Dies hat zur Folge, dass es praktisch nicht möglich ist vorherzusagen, wie viele Glieder im Durchschnitt berechnet werden müssen, da die Größe und Entwicklung der Reihenglieder stark von Basis und Exponent abhängen.
 
 \section{Zusammenfassung und Ausblick}
 
@@ -269,10 +277,21 @@ Diese Unterschiede in der Speichernutzung stimmen mit unseren theoretischen Übe
 Bei diesem Projekt ging es darum, eine Graustufen-Kodierung und Gammakorrektur selber zu programmieren. Das Umsetzen der Graustufen-Kodierung war relativ einfach, genau wie die Implementierung mit der Pow-Funktion. Die Aufgabe erhielt eine neue Stufe an Komplexität, sobald es zur Implementierung mit der Taylorreihe und der SIMD Implementierung kommt. Die Taylorreihe führt zu einer geringeren Genauigkeit. Die SIMD-Funktion hat zu einer höhere Performanz von etwa … Prozent geführt. Abschließend kann man sagen, dass dieses Projekt einen interessanten Einblick in verschiedene Bildformate, das Approximieren mit Hilfe der Taylorreihe und das Optimieren mit Hilfe von SIMD-Intrinsics geliefert hat.
 
 \par
-Außerdem erörterten die Diskussionsteilnehmer, wie das Problem der langsamen Iteration gelöst werden kann, wenn x klein ist; eine Lösung ist die Verwendung von Lookup Table\cite{wikipedia2023lookuptable}.
+Außerdem erörterten die Diskussionsteilnehmer, wie das Problem der langsamen Iteration gelöst werden kann, wenn x klein ist; eine Lösung ist die Verwendung von Lookup Table\cite{jungck2011packetC}, nämllich speichen wir die genaue Berechnung von kleine x und häufig verwendetem Gamma (Gamma nahe 2,2) in LUT.
 
 \par
 todo by zhongfang: explain how to use lookup table to solve the problem of slow convergence when x is small
+
+\par
+Für die praktische Analyse der Laufzeit wurden die 3 Versionen des Algorithmus auf einem Gerät mit folgender Spezifikation evaluiert:
+
+\begin{itemize}
+\item AMD Ryzen 5 3600 6-Core Processor 3.59 GHz
+\item 8.00 GB DDR4 RAM
+\item ...
+\end{itemize}
+
+
 
 % TODO: Fuegen Sie Ihre Quellen der Datei Ausarbeitung.bib hinzu
 % Referenzieren Sie diese dann mit \cite{}.
