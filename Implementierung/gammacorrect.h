@@ -20,7 +20,7 @@ static const char *help_msg = // should be updated at V B coeffs
     "Usage: %s [options] inputfile...\n"
     "Options:\n"
     "  -V<int>                            Optional. Choose a version.\n"
-    "  -B<int>                            Optional. Choose how many times the function call will be repeated. Default is 100.\n"
+    "  -B<int>                            Optional. Choose how many times the function call will be repeated.\n"
     "  Inputfile                          Specify the name of the input file.\n"
     "  -o<string>                         Specify the name of the output file.\n"
     "  --coeffs<float>,<float>,<float>    Optional. Set the coefficients for the grey value conversion.\n"
