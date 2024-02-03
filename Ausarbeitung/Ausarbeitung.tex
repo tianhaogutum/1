@@ -238,14 +238,45 @@ Aber wirkt sich das sehr negativ auf unsere Ergebnisse aus?In Anwendungen tatsä
 \item Wenn das Gamma einen ganzzahligen Teil enthält, ist das Ergebnis des ganzzahligen Teils kleiner als 1, weil die Basis kleiner als 1 ist. Der absolute Fehler aus dem gebrochenen Teil der Berechnung wird reduziert, wenn wir das Ergebnis mit dem ganzzahligen Teil multiplizieren.
 \end{enumerate}
 
+
+\section{Performanzanalyse}
 \par
-In der Grafik1 sehen wir das Resultat der Laufzeitanalyse für die 3 verschiedenen Versionen bei unterschiedlichen Benchmarking-Zyklen.
+Im vorletzten Teil der Ausarbeitung untersuchen wir nun die Leistung unserer verschiedenen Implementierungen. Dabei analysieren wir bezogen auf die Laufzeit und den Speicherbedarf.
 
 \par
-GRAFIK1 - TODO
+Die theoretische Laufzeit unserer Implementierungen hängt in erster Linie von der Anzahl der Pixel. Die Laufzeit aller 3 Implementationen befindet sich in O(Anzahl-Pixel). Für V0 und V2 werden nur Schleifen zur Bearbeitung des Inputs verwendet. V1 verwendet Schleifen zur Berechnung der Taylorreihe, jedoch ist die Anzahl an möglichen Zyklen in V1 durch eine obere Grenze beschränkt und liegt somit auch in O(Anzahl-Pixel)
 
 \par
-Die Version 2 war wie zu erwarten langsamer als Version 1, da sie nicht die Pow-Funktion der Library benutzt, sondern selbst die Taylorreihe implementiert. Durch das Verwenden von SIMD Anweisungen konnte die Laufzeit des Programms um etwa 30 Prozent verbessert werden.
+Für die praktische Analyse der Laufzeit wurden die 3 Versionen des Algorithmus auf einem Gerät mit folgender Spezifikation evaluiert:
+
+\begin{itemize}
+\item Intel Core i5-3337U CPU @ 1.80GHz × 4
+\item 16.0 GiB DDR3
+\item Ubuntu 22.04.3 LTS 64bit
+\end{itemize}
+
+\par
+In den zwei Grafiken unten sehen wir das Resultat der Laufzeitanalyse für die 3 verschiedenen Versionen bei unterschiedlichen Benchmarking-Zyklen und unterschiedlichen Gammawerten.
+
+\begin{figure}[h]
+\begin{minipage}{0.55\textwidth}
+\centering
+\includegraphics[width=\textwidth]{Bilder/auto1.png}
+\caption{Laufzeit von V0(gelb), V1(blau) und V2(grün)}
+\end{minipage}
+\hfill
+\begin{minipage}{0.55\textwidth}
+\centering
+\includegraphics[width=\textwidth]{Bilder/auto2.png}
+\caption{Laufzeit von V0(gelb), V1(blau) und V2(grün)}
+\end{minipage}
+\end{figure}
+    
+\par
+Die Version 1 ist wie zu erwarten langsamer als Version 0, da sie nicht die Pow-Funktion der Library benutzt, sondern selbst die Taylorreihe implementiert. Eine wichitge Ausnahme ist dabei der Fall wo der Gammawert eine ganze Zahl ist (siehe Abb.11). In diesem Fall nimmt unsere Implementationen von V1 einen Shortcut und is somit deutlich schneller als V0/V2. Bei allen anderen Gammawerten ist VO/V2 schneller als V1. 
+
+\par
+Durch das Verwenden von SIMD Anweisungen konnte die Laufzeit von V0 etwas verbessert werden.
 
 \par
 Bei der Analyse des Speicherbedarfs verwenden wir das Tool “Valgrind”. Dabei handelt es sich um eine Sammlung von Programmierwerkzeugen, die unter anderem die Speichernutzung eines Programms protokollieren kann. Beim Ausführen unseres Programms mit 9 verschiedenen Eingabe-Bildern unterschiedlicher Größe kamen wir zu folgenden Ergebnissen (Abb.10).
@@ -260,16 +291,7 @@ Bei der Analyse des Speicherbedarfs verwenden wir das Tool “Valgrind”. Dabei
 Für alle 3 Implementierungen kann man einen linearen Zusammenhang zwischen Bildgröße und Speichernutzung beobachten. V0 und V1 haben jeweils sehr ähnliche Resultate geliefert, weshalb sie in der Grafik zusammengefasst wurden. Beide Implementationen haben ungefähr eine Speichernutzung von 3,7 KB pro 1000 Pixel. Die Implementierung V2 verbraucht mit 16 KB pro 1000 Pixel im Vergleich deutlich mehr Speicher.
 
 \par
-Diese Unterschiede in der Speichernutzung stimmen mit unseren theoretischen Überlegeungen überein. Beim Laden des PPM-Bildes für die SIMD Version werden die "uint\_8" Werte der Pixel als "float" Werte gespeichert. Dadurch kommt es zu einer 4x größeren Speicherallokation. Zusätzlich wird bei Version 2 ein Zwischenergebnis für die Pixel als float Werte gespeichert. Daher sollte der Speicherbedarf insgesamt um den Faktor 4.25 größer sein. 
-
-
-\section{Performanzanalyse}
-
-\par
-Im vorletzten Teil der Ausarbeitung untersuchen wir nun die Leistung unserer verschiedenen Implementierungen. Dabei analysieren wir bezogen auf die Laufzeit und den Speicherbedarf.
-
-\par
-Eine theoretische Laufzeitanalyse ist für keine der drei Implementierungen praktisch umsetzbar. Bei Version 0 und Version 2 wird die pow()-Funktion der Math.h - Bibliothek verwendet. Dabei handelt es sich um eine Blockbox-Funktion, deren Laufzeit wir nicht theoretisch bestimmen können. Bei Version 1 findet eine Approximation durch die Taylorreihe statt. Dabei wird die Reihe abgebrochen, sobald das neueste Reihenglied betragsmäßig kleiner als ein bestimmtes Epsilon ist. Dies hat zur Folge, dass es praktisch nicht möglich ist vorherzusagen, wie viele Glieder im Durchschnitt berechnet werden müssen, da die Größe und Entwicklung der Reihenglieder stark von Basis und Exponent abhängen.
+Diese Unterschiede in der Speichernutzung stimmen mit unseren theoretischen Überlegeungen überein. Beim Laden des PPM-Bildes für die SIMD Version werden die uint8\_t-Werte der Pixel als float-Werte gespeichert. Dadurch kommt es zu einem 4x größeren Speicherbedarf für Eingabedateien. Zusätzlich wird bei Version 2 ein Zwischenergebnis für die Pixel als float Werte gespeichert. Daher sollte der Speicherbedarf theoretisch insgesamt um den Faktor 4,25 größer sein. 
 
 \section{Zusammenfassung und Ausblick}
 
@@ -278,20 +300,6 @@ Bei diesem Projekt ging es darum, eine Graustufen-Kodierung und Gammakorrektur s
 
 \par
 Außerdem erörterten die Diskussionsteilnehmer, wie das Problem der langsamen Iteration gelöst werden kann, wenn x klein ist; eine Lösung ist die Verwendung von Lookup Table\cite{jungck2011packetC}, nämllich speichen wir die genaue Berechnung von kleine x und häufig verwendetem Gamma (Gamma nahe 2,2) in LUT.
-
-\par
-todo by zhongfang: explain how to use lookup table to solve the problem of slow convergence when x is small
-
-\par
-Für die praktische Analyse der Laufzeit wurden die 3 Versionen des Algorithmus auf einem Gerät mit folgender Spezifikation evaluiert:
-
-\begin{itemize}
-\item AMD Ryzen 5 3600 6-Core Processor 3.59 GHz
-\item 8.00 GB DDR4 RAM
-\item ...
-\end{itemize}
-
-
 
 % TODO: Fuegen Sie Ihre Quellen der Datei Ausarbeitung.bib hinzu
 % Referenzieren Sie diese dann mit \cite{}.
