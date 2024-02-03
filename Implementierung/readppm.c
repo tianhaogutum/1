@@ -5,7 +5,7 @@ static void magic_number_s0(FILE *fd);
 static void magic_number_s1(FILE *fd);
 static void magic_number_s2(FILE *fd);
 // state machine for width, height and maxval part, two functions for two possible status
-static struct digits_chain *getsize_s0(FILE *fd);                                                                // return the start of a digits chain
+static struct digits_chain *getsize_s0(FILE *fd);                                                                // this function returns the head of a single linked list, every node of this list stores a digit
 static void getsize_s1(FILE *fd, struct digits_chain *start);                                                    // append the following digits to digits chain
 static size_t get_number_from_digits(struct digits_chain *start);                                                // get number and free all allocated space for digits chain
 static void enter_and_exit_comment_with_errorfree(FILE *fd, struct digits_chain *start);                         // if program is exiting with error in a comment, then the allocated memory should be freed, and the file should be closed
@@ -34,7 +34,6 @@ uint8_t *readppm_for_seq(const char *input_file, size_t *width, size_t *height)
         free(value_of_pixels);
         exit_failure_with_errmessage_and_release(fd, NULL, "Read pixel values of input file failed. Is your input file deprecated?\n");
     }
-    printf("width is %lu\nheight is %lu\n", *width, *height); // only for testing, will be removed
     fclose(fd);
     return value_of_pixels;
 }
@@ -43,9 +42,9 @@ void readppm_for_simd(const char *input_file, size_t *width, size_t *height, flo
 { // result used for V2, save value of three different colors into three different buffers
     FILE *fd = get_metadata(input_file, width, height);
     size_t number_of_pixels = (*width) * (*height);
-    size_t color_buffer_size = ((number_of_pixels << 2) & 0xfffffffffffffff0) + 16;//size of buffer for each color, the start address of the buffer will be aligned to 16
-    *red_in_pixels = aligned_alloc(16, color_buffer_size);
-    if (!(*red_in_pixels)) // allocation failed?
+    size_t color_buffer_size = ((number_of_pixels << 2) & 0xfffffffffffffff0) + 16; // size of buffer for each color, should be an integer multiple time of 16
+    *red_in_pixels = aligned_alloc(16, color_buffer_size);                          // start address will then be aligned to 16
+    if (!(*red_in_pixels))                                                          // allocation failed?
     {
         exit_failure_with_errmessage_and_release(fd, NULL, "Can not allocate space for red of input pixels.\n");
     }
@@ -80,7 +79,6 @@ void readppm_for_simd(const char *input_file, size_t *width, size_t *height, flo
         free(*blue_in_pixels);
         exit_failure_with_errmessage_and_release(fd, NULL, "Read pixel values of input file failed. Is your input file deprecated?\n");
     }
-    printf("width is %lu\nheight is %lu\n", *width, *height); // only for testing, will be removed
     fclose(fd);
 }
 
@@ -108,6 +106,10 @@ static FILE *get_metadata(const char *input_file, size_t *width, size_t *height)
     if (maxval != 255)                                       // check if is picture is 24bpp
     {
         exit_failure_with_errmessage_and_release(fd, NULL, "This program only accept 24 bpp pictures, which means the maxval of your picture has to be 255. However, the maxval in the given picture is %lu.\n");
+    }
+    if (width == 0 || height == 0) // check if width or height in input file is 0
+    {
+        exit_failure_with_errmessage_and_release(fd, NULL, "Width or height in the metadata of the input file is 0.\n");
     }
     return fd;
 }
