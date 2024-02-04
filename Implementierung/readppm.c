@@ -63,7 +63,7 @@ void readppm_for_simd(const char *input_file, size_t *width, size_t *height, flo
     }
     size_t success_read = 0;
     uint8_t integer_byte_value = 0;
-    for (size_t i = 0; i < number_of_pixels; ++i) // read the value of three colors of a pixel and save into a buffer accordingly
+    for (size_t i = 0; i < number_of_pixels; ++i) // read the value of three colors of a pixel and save into a buffer accordingly, saving as floats
     {
         success_read += fread(&integer_byte_value, 1, 1, fd);
         *((*red_in_pixels) + i) = integer_byte_value;

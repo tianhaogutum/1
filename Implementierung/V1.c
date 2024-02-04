@@ -44,14 +44,14 @@ float pow_with_taylor_expansion(float base, float gamma) // comput base ** gamma
     ret *= decimal_power_with_taylor_expansion(base, gamma); // compute decimal power of the base
     return ret;
 }
-
+//f(x) = f(a) + f'(a)*(x-a) + (f'(a)*f''(a) / 2)*(x-a)^2 + ((f'(a)*f''(a)*f'''(a)) / (3*2))*(x-a)^3 + ........, f(x) = x^gamma, take a = 1
 static float decimal_power_with_taylor_expansion(float base, float decimal_gamma)
-{ // we choose a = 1, as this will simplify the calculation
-    if (decimal_gamma == 0)//when gamma is zero, then result will always be 1
+{                           // we choose a = 1, as this will simplify the calculation
+    if (decimal_gamma == 0) // when gamma is zero, then result will always be 1
     {
         return 1;
     }
-    else if (base == 0)//when base is zero and gamma is not zero, then result will always be 0. As the black pixels (0,0,0) could be quite common in images, this will be handled as special case
+    else if (base == 0) // when base is zero and gamma is not zero, then result will always be 0. As the black pixels (0,0,0) could be quite common in images, this will be handled as special case
     {
         return 0;
     }
@@ -68,8 +68,8 @@ static float decimal_power_with_taylor_expansion(float base, float decimal_gamma
         current_pow = current_pow - 1;
         n_pow_base_minus_a *= base_minus_a;
         term *= current_pow / counter; // update the coefficient
-        if (base_minus_a == -1 && (current_pow / counter + 1) < 0.00000001)
-        { // if base is too small, the base - 1 will be -1(absorption), this will cause endless while loop and needs to be handled, in such case, the loop ends at the condition of current_pow / counter == -1, as the terms afterwards are all the same
+        if (base_minus_a == -1 && current_pow == -16777216)
+        { // if base is too small, the base - 1 will be -1(absorption), this will cause endless while loop and needs to be handled, in such case, the loop ends at the condition of current_pow = -16777216, as from this number, all following current_pow will remain this number.
             break;
         }
     }
