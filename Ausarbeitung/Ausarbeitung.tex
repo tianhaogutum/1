@@ -113,9 +113,9 @@ In allen aufgerufenen Funktionen wird zunächst die Eingabedatei gelesen. Gemä�
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.5\textwidth]{Bilder/auto1.png}
-    \caption{Erste Zustandsautomat}
+    \caption{Zustandsautomat für das Lesen von P6}
     \includegraphics[width=0.5\textwidth]{Bilder/auto2.png} 
-    \caption{Zweite Zustandsautomat} 
+    \caption{Zweite Zustandsautomat für das Lesen von ASCII Integer} 
 \end{figure}
 \par
 Der Speicher für die Eingabedaten und Ausgabedaten wird basierend auf den Metadaten der Eingabedatei allokiert. Bei der Implementierung von V0 und V1 werden die drei Farben jedes Pixels beim Lesen der Eingabedatei in der originalen Reihenfolge gespeichert. Bei der Implementierung von V2 werden beim Einlesen die drei Farben jedes Pixels getrennt gespeichert. Dadurch werden drei Speicherbereiche im Heap erstellt, die jeweils für eine bestimmte Farbe alle Pixel-Werte in fortlaufender Reihenfolge speichern. In der \texttt{main}-Funktion wird eine Switch-Anweisung verwendet, um verschiedene Funktionen gemäß der gewählten Versionen aufzurufen.
@@ -172,10 +172,7 @@ Das Programm verteilt alle Funktionen sinnvoll auf die verschiedenen Funktionen.
 In diesem Teil der Ausarbeitung beschäftigen wir uns mit der Genauigkeit unserer Implementierung.Um die Genauigkei des gesamten Verfahrens zu studieren, untersuchen wir die Graustufenkonvertierung und die Gammakorrektur separat. Im Schritt der Graustufenkonvertierung werden wir den Unterschied zwischen den Ergebnissen von v0 und der offiziellen netpbm-Funktion ppmtopgm untersuchen, und im Schritt der Gamma-Korrektur analysieren wir sie unter dem Gesichtspunkt der mathematischen Konvergenz, bzw. unter dem Gesichtspunkt des realen Fehlers des Programmlaufs. Im Folgenden bezieht sich Basis auf $\frac{D(x, y)}{255}$.
 
 \par
-Die analytischen Ergebnisse der Graustufenumrechnung lauten wie folgt.
-
-\par
-pic by zhongfang
+Die analytischen Ergebnisse der Graustufenumrechnung lauten wie folgt. Zuerst vergleichen wir die Ergebnisse unserer Implementierung mit den Ergebnissen, welche durch das netpbm-Paket generiert wurden. Die Funktion ppmtopgm aus dem netpbm-Paket verwendet immer Default-Koeffizienten a,b,c , um ein ppm-Bild in ein pgm-Bild zu konvertieren und führt keine direkte Gammakorrektur durch. Daher rufen wir für die Graustufenkonvertierung die Funktion gamma\_correct auf und übergeben ihr die Default-Koeffizienten a, b, c und setzten gamma gleich 1. Daraufhin vergleichen wir den prozentualen Unterschied in der Ausgabe und den Wert der insgesamten Differenz für alle möglichen 24bpp-Pixel der beiden Ergebnisse (unsere Implementierung und ppmtopgm). Betrachtet man alle mögliche Eingabepixel ($2^24/16777216$) so zeigt der Vergleich, dass es 8363407 Fälle gibt, in denen das Ergebnis unserer Implementierung in einem Pixel um 1 größer ist als das ppmtopgm Ergebnis. Es gibt keine Fälle, bei denen unser Ergebnis in einem Pixel um 2 oder mehr größer ist und es gibt auch keine Fälle, bei denen unser Ergebnis kleiner ist als das von ppmtopgm. Dies dürfte darauf zurückzuführen sein, dass in unserem Programm die Funktion roundf aus der Bibliothek math.h verwendet wird, um das Endergebnis zu runden, indem das nicht ganzzahlige Ergebnis auf die nächstliegende ganze Zahl ausgerichtet wird. Dies führt dazu, dass einige Pixelpunkte nach oben gerundet werden, anstatt nur den Bruchteil abzurunden. Bei der Berechnung der Graustufenumwandlung in V0, V1 und V2 wird derselbe Algorithmus verwendet, so dass sie das gleiche Ergebnis liefern.
 
 \par
 Schauen wir uns die Ungenauigkeit bei Gammakorrektur von dem mathematischen Perspektive an, die entstanden wäre, wenn das Programm in Version 2 anstelle von pow in stadard lib die Formel (3) verwendet hätte. Dies liegt daran, dass wir lediglich eine beschränkte Anzahl von Termen der Taylorreihe berechnen können. Dadurch werden Terme ab dem (n+1)-ten vernachlässigt, was zu Genauigkeitsverlusten führt. Zur Schätzung der Präzision ziehen wir das \text{Peano'sche Restglied}\cite{mathematiknet2009taylorpolynome} heran.
@@ -216,13 +213,13 @@ Daraus folgt, dass die Auswirkung von $\gamma$ linear und die von der Basis krum
 Wir haben eben die GenauigkeitBerechnungen vom mathematischen Standpunkt aus geschätzt, und im Folgenden sehen wir, ob das Programm ebenfalls dieser Schlussfolgerung folgt. Das folgende Bild zeigt den Unterschied zwischen den Ergebnissen der verschiedenen ($\gamma$,Basis)-Berechnungen und der pow-Funktion von math.h. Die Schlussfolgerung ist in Abbildung 10 dargestellt. Die Ergebnisse der Ausführung unseres Programms bestätigen auch die Schlussfolgerungen der mathematischen Berechnungen, d.h. der Wert von $\gamma$ hat einen geringen Einfluss auf den Fehler, während Basis sehr nahe bei 0 zu einem großen Fehler führt.
 
 \par
-pic by zhongfang
+Im nächsten Teil der Ausarbeitung wird die Genauigkeit unserer Implementierung analysiert. Dabei betrachten wir den Gesamtfehler, der in unseren Algorithmen durch die Taylor-Expansion und die Fließkommaoperationen generiert wird. Hierfür haben wir die Funktion pow aus der Bibliothek math.h als Referenzobjekt gewählt, um die Abweichung der Funktion decimal\_power\_with\_taylor\_expansion zu analysieren. Die Werte von Basis und gamma in dieser Funktion liegen im Bereich [0, 1] bzw. [0, 1). Wenn die Abweichung nicht größer als $1/255$ ist, betrachten wir diese Abweichung als akzeptabel, da der Wert eines Pixels in der pgm-Ausagbe dann höchstens um 1 vom Referenzwert abweichen kann. Aus den Ergebnissen des experimentellen Programms schließen wir, dass es nur möglich ist, eine nicht akzeptable Abweichung für einige der Gamma-Werte im Wertebereich zu erhalten, wenn die Basis kleiner als $0,000005$ ist (Ergebnis von Basis = 0 ist immer exakt.). Bei einer größeren Basis liegt die Abweichung der Ergebnisse immer innerhalb akzeptabler Grenzen, unabhängig vom Wert des Gammas. Aus einer weiteren Analyse lässt sich schließen, dass ein Ergebnis mit einem relativ großen endgültigen Fehler aufgrund einer kleinen Basis ungleich Null nur dann erzielt werden kann, wenn mindestens einer der vom Benutzer eingestellten Koeffizienten a,b,c kleiner als $0,000005$ ist. Eine solche Einstellung ist keine Standardeinstellung für die Koeffizienten und gehört zu keinem der üblicherweise verwendeten Koeffizienten-Werten. Daher befindet sich der Fehler, welcher durch den Algorithmus der Taylor-Expansions verursacht wird, in akzeptablen Grenzen.
 
 \par
 Als Nächstes vergleichen wir den Gamma-Korrekturschritt - wir haben 255 mögliche Pixelpunkte, für die wir die offiziellen V0-, V1- bzw. netpbm-Methoden verwenden, und die Ergebnisse sind in der Abbildung dargestellt.
 
 \par
-pic by zhongfang
+Da pnmgamma im netpbm-Paket die Ausgabedatei (pgm-Format) nur aus einer pgm-Eingabedatei erzeugen kann, testen wir den Teil der Berechnung der Gammakorrektur in gamma\_correct separat. Da sowohl V0 als auch V2 die Funktion pow aus der Bibliothek math.h verwenden, sollten sie beide das gleiche Ergebnis liefern. In V1 wird jedoch die Taylorreihe zur Berechnung der Gammakorrektur verwendet, so dass es notwendig ist, die Ergebnisse der beiden Implementierungen mit den Ergebnissen von pnmgamma zu vergleichen. Nach dem Vergleich stellt sich heraus, dass für alle möglichen Werte der Graustufen (ganze Zahlen im Bereich von 0-255) und für häufig verwendete Gamma (von 1 bis 2,2 in 0,1-Schritten) die Ergebnisse beider Algorithmen von gamma\_correct und pnmogamma identisch sind. Deshalb ist die Genauigkeit der Ergebnisse unserer gamma\_correct-Funktion für dieses Problem hoch genug. Da unsere Methode die Graustufen nach der Berechnung der Graustufen durch Fließkommazahlen speichert, sollte unser Ansatz theoretisch genauer sein als die zweistufige Berechnung von ppmtopgm und pnmgamma im netpbm-Paket.
 
 \par
 Aber wirkt sich das sehr negativ auf unsere Ergebnisse aus? In Anwendungen tatsächlich nicht wirklich schlimm.Begründen ist wie folgt:
@@ -255,13 +252,13 @@ In den zwei Grafiken unten sehen wir das Resultat der Laufzeitanalyse für die 3
 \begin{figure}[h]
 \begin{minipage}{0.55\textwidth}
 \centering
-\includegraphics[width=\textwidth]{Bilder/auto1.png}
+\includegraphics[width=\textwidth]{Bilder/left.jpeg}
 \caption{Laufzeit von V0(gelb), V1(blau) und V2(grün)}
 \end{minipage}
 \hfill
 \begin{minipage}{0.55\textwidth}
 \centering
-\includegraphics[width=\textwidth]{Bilder/auto2.png}
+\includegraphics[width=\textwidth]{Bilder/right.jpeg}
 \caption{Laufzeit von V0(gelb), V1(blau) und V2(grün)}
 \end{minipage}
 \end{figure}
@@ -302,6 +299,20 @@ Außerdem erörterten die Diskussionsteilnehmer, wie das Problem der langsamen I
 \bibliography{Ausarbeitung}
 
 \end{document}
+
+
+
+
+P6
+4
+2
+255
+\x00\x00\x00\xff\x00\x00\x00\xff\x00\x00\x00\xff
+\xff\xff\x00\xff\x00\xff\x00\xff\xff\xff\xff\xff 
+
+
+
+
 
 
 
