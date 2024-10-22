@@ -20,14 +20,18 @@ $begin:math:display$
 D = \\frac{a \\cdot R + b \\cdot G + c \\cdot B}{a + b + c}
 $end:math:display$
 
-The resulting grayscale image $begin:math:text$Q$end:math:text$ is defined by $begin:math:text$Q(x,y) = D$end:math:text$.
+The resulting grayscale image $begin:math:text$Q$end:math:text$ is defined by 
+
+$begin:math:display$
+Q(x,y) = D.
+$end:math:display$
 
 ### 3.2 Gamma Correction
 
 Gamma correction is performed using the following formula:
 
 $begin:math:display$
-Q'(x,y) = \\left(\\frac{Q(x,y)}{255}\\right)^{\\gamma} \\cdot 255
+Q'(x,y) = \\left(\\frac{Q(x,y)}{255}\\right)^{\\gamma} \\cdot 255.
 $end:math:display$
 
 ## 4. Implementation
